@@ -26,6 +26,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-const User = mongoose.models.User || mongoose.model("User", userSchema);
+const User = mongoose.models.User || mongoose.model("User", userSchema); // either directs to the User table created or creates a new one with data provided in Schema 
 
 export default User;

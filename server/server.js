@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import connectDb from './configs/db.js';
 import 'dotenv/config'
+import userRouter from './routes/userRoute.js';
 
 
 const app = express();
@@ -28,6 +29,9 @@ app.get('/', (req,res)=>{
 res.send("API is Working")
 
 })
+
+app.use('api/user',userRouter) // the official path where func userRouter will work
+
 
 app.listen(port,()=>{
     console.log(`Server is running on port ${port}`)
