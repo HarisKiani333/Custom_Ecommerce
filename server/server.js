@@ -1,38 +1,49 @@
-import cookieParser from 'cookie-parser';
-import express from 'express';
-import cors from 'cors';
-import connectDb from './configs/db.js';
-import 'dotenv/config'
-import userRouter from './routes/userRoute.js';
+import cookieParser from "cookie-parser";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import connectDb from "./configs/db.js";
+import userRouter from "./routes/userRouter.js";
+import sellerRouter from "./routes/sellerRouter.js";
+import connectCloudinary from "./configs/cloudinary.js";
+import productRouter from "./routes/productRouter.js";
 
+
+
+// Load environment variables before using them
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 4000;
-await connectDb();
 
-const allowedOrigin = ['http://localhost:5173'];
+// Connect to MongoDB
+await connectDb().catch((err) => console.log(err));
+await connectCloudinary().catch((err) => console.log(err));
 
 
 
+const allowedOrigin = ["http://localhost:5173"];
 
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
+app.use(
+  cors({
     origin: allowedOrigin,
-    credentials: true
-}))
+    credentials: true,
+  })
+);
+
+app.get("/", (req, res) => {
+  res.send("API is Working");
+});
+
+app.use("/api/user", userRouter); // the official path where func userRouter will work
+app.use("/api/seller", sellerRouter);
+app.use("/api/product", productRouter);
 
 
-app.get('/', (req,res)=>{
-res.send("API is Working")
-
-})
-
-app.use('api/user',userRouter) // the official path where func userRouter will work
-
-
-app.listen(port,()=>{
-    console.log(`Server is running on port ${port}`)
-})
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
