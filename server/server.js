@@ -3,10 +3,11 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDb from "./configs/db.js";
-import userRouter from "./routes/userRouter.js";
-import sellerRouter from "./routes/sellerRouter.js";
+import userRouter from "./routes/userRoute.js";
+import sellerRouter from "./routes/sellerRoute.js";
 import connectCloudinary from "./configs/cloudinary.js";
-import productRouter from "./routes/productRouter.js";
+import productRouter from "./routes/productRoute.js";
+import cartRouter from "./routes/cartRoute.js";
 
 
 
@@ -42,6 +43,8 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRouter); // the official path where func userRouter will work
 app.use("/api/seller", sellerRouter);
 app.use("/api/product", productRouter);
+app.use("/api/cart", cartRouter);
+
 
 
 app.listen(port, () => {
