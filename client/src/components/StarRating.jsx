@@ -31,7 +31,12 @@ const StarRating = ({ rating, size = "small", showRatingText = false }) => {
     // Half star
     if (hasHalf) {
       stars.push(
-        <svg key="half" viewBox="0 0 20 20" className={starSize} xmlns="http://www.w3.org/2000/svg">
+        <svg
+          key="half"
+          viewBox="0 0 20 20"
+          className={starSize}
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <path
             d="M10 15.273l-4.043 2.938 1.286-3.97a1 1 0 00-.364-1.118L3.5 10.668l4.174-.001a1 1 0 00.95-.69L10 6.007v9.266z"
             fill={fillColor}
@@ -64,10 +69,18 @@ const StarRating = ({ rating, size = "small", showRatingText = false }) => {
   };
 
   return (
-    <div className={`flex items-center ${size === "large" ? "gap-0.5" : "gap-[2px]"}`}>
+    <div
+      className={`flex items-center ${
+        size === "large" ? "gap-0.5" : "gap-[2px]"
+      }`}
+    >
       {renderStars(rating)}
       {showRatingText && (
-        <p className={`ml-2 ${size === "large" ? "text-base" : "text-[11px] text-gray-400"}`}>
+        <p
+          className={`ml-2 ${
+            size === "large" ? "text-base" : "text-[11px] text-gray-400"
+          }`}
+        >
           ({rating})
         </p>
       )}

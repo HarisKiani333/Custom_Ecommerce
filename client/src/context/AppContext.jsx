@@ -2,6 +2,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { dummyProducts } from "../assets/assests";
 import { toast } from "react-hot-toast";
+import axios from "axios";
+
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+
 const currency = import.meta.env.VITE_CURRENCY;
 
 const AppContext = createContext();
@@ -9,11 +14,49 @@ const AppContext = createContext();
 const AppContextProvider = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [isSeller, setIsSeller] = useState(true);
+  const [isSeller, setIsSeller] = useState(false);
   const [showUserLogin, setShowUserLogin] = useState(false);
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+
+
+  //fetch user auth status : user cart items and data 
+
+
+  const fetchUserStatus = async ()=>{
+    try {
+      const {data} = await axios.get("/api/user/is-auth");
+      if(data.success){
+        setUser(data.user);
+        setCartItems(data.user.cartItems);
+      }
+      else{
+        setUser(null);
+        setCartItems({});
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
+
+
+  //seller status
+  const fetchSeller = async () => {
+    try {
+      const { data } = await axios.get("/api/seller/is-auth");
+      if (data.success) {
+        setIsSeller(true);
+      } else {
+        setIsSeller(false);
+      }
+    } catch (error) {
+      setIsSeller(false);
+      console.error("Seller auth error:", error);
+    }
+  };
 
   const addCartItem = (itemId) => {
     let cartData = structuredClone(cartItems);
@@ -43,11 +86,30 @@ const AppContextProvider = ({ children }) => {
   };
 
   const fetchProducts = async () => {
-    setProducts(dummyProducts);
+    try {
+        const {data} = await axios.get("/api/product/list");
+       
+       if(data.success){
+        setProducts(data.products);
+        console.log(data.products);
+       }
+       else
+       {
+        toast.error("Error fetching products");
+       }
+
+    } catch (error) {
+      console.log(error);
+      toast.error(error.message);
+
+    } 
+
   };
 
   useEffect(() => {
     fetchProducts();
+    fetchSeller();
+    fetchUserStatus();
   }, []);
 
   const getCartCount = () => {
@@ -89,6 +151,8 @@ const AppContextProvider = ({ children }) => {
     setSearchQuery,
     getCartCount,
     getCartAmount,
+    axios,
+    fetchProducts
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

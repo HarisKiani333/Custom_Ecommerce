@@ -1,19 +1,30 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppContext } from "../../context/AppContext";
 import BgImg from "../../assets/img/sellerBg.jpg";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 const SellerLogin = () => {
   const { isSeller, setIsSeller, navigate } = useAppContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const onSubmitHandler = (e) => {
-    e.preventDefault();
-    if (email && password) {
-      setIsSeller(true);
-      navigate("/seller");
-      setEmail("");
-      setPassword("");
+  const onSubmitHandler = async (e) => {
+    try {
+      e.preventDefault();
+      const { data } = await axios.post("/api/seller/login", {
+        email,
+        password,
+      });
+      if (data.success) {
+        setIsSeller(true);
+        navigate("/seller");
+        toast.success("Login Successful");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response.data.message);
     }
   };
 

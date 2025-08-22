@@ -4,10 +4,10 @@ const Footer = () => {
   return (
     <footer className=" mt-16 w-full bg-gradient-to-b from-[#4CAF50] to-[#087f23] text-white/80 py-8 px-4">
       <div className="max-w-[1600px] mx-auto flex flex-col items-center justify-center">
- <img src={logo} alt="Husk Store Logo" className="h-24" />
+        <img src={logo} alt="Husk Store Logo" className="h-24" />
         <p className="mt-4 text-center">
-          Copyright © {new Date().getFullYear()} <a href="https://huskstore.com">Husk Store</a>. All
-          rights reservered.
+          Copyright © {new Date().getFullYear()}{" "}
+          <a href="https://huskstore.com">Husk Store</a>. All rights reservered.
         </p>
         <div className="flex items-center gap-4 mt-5">
           <a

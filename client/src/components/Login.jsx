@@ -1,8 +1,9 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const Login = () => {
-  const { setShowUserLogin, setUser } = useAppContext();
+  const { setShowUserLogin, setUser, navigate, axios } = useAppContext();
   const [state, setState] = React.useState("login");
 
   const [name, setName] = React.useState("");
@@ -17,9 +18,7 @@ const Login = () => {
   };
 
   const validatePassword = (value) => {
-    return value.length > 16
-      ? "Password cannot exceed 16 characters"
-      : "";
+    return value.length > 16 ? "Password cannot exceed 16 characters" : "";
   };
 
   const onSubmitHandler = async (event) => {
@@ -34,9 +33,27 @@ const Login = () => {
       return;
     }
 
-    // Simulating successful login
-    setUser({ email, password });
-    setShowUserLogin(false);
+    try {
+      // API call to either login or register
+      const { data } = await axios.post(`/api/user/${state}`, {
+        name,
+        email,
+        password,
+      });
+
+      if (data.success) {
+        toast.success("Login successful!");
+        navigate("/");
+        // Fix: Backend returns user data in message field
+        setUser(data.message); // Changed from data.user to data.message
+        setShowUserLogin(false);
+      } else {
+        toast.error(data.message || data.error || "Authentication failed");
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || error.response?.data?.error || "An error occurred");
+    }
   };
 
   return (
@@ -75,7 +92,10 @@ const Login = () => {
           <input
             onChange={(e) => {
               setEmail(e.target.value);
-              setErrors((prev) => ({ ...prev, email: validateEmail(e.target.value) }));
+              setErrors((prev) => ({
+                ...prev,
+                email: validateEmail(e.target.value),
+              }));
             }}
             value={email}
             placeholder="Enter Email"
@@ -83,7 +103,9 @@ const Login = () => {
             type="email"
             required
           />
-          {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+          )}
         </div>
 
         {/* Password Field */}
@@ -92,7 +114,10 @@ const Login = () => {
           <input
             onChange={(e) => {
               setPassword(e.target.value);
-              setErrors((prev) => ({ ...prev, password: validatePassword(e.target.value) }));
+              setErrors((prev) => ({
+                ...prev,
+                password: validatePassword(e.target.value),
+              }));
             }}
             value={password}
             placeholder="Enter Password"
@@ -100,7 +125,9 @@ const Login = () => {
             type="password"
             required
           />
-          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+          )}
         </div>
 
         {/* Switch State */}

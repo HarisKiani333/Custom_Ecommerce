@@ -1,7 +1,31 @@
+import { useState } from "react";
+import toast from "react-hot-toast";
 import { useAppContext } from "../../context/AppContext";
 
 const ProductLists = () => {
-  const { products, currency } = useAppContext();
+  const { products, currency, axios, fetchProducts } = useAppContext();
+  const [loading, setLoading] = useState(false);
+
+  const toggleStock = async (id, inStock) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const { data } = await axios.put(`/api/product/stock`, {
+        id,
+        inStock,
+      });
+      if (data.success) {
+        toast.success(data.message);
+        fetchProducts();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex-1 py-10 flex flex-col justify-between">
@@ -43,9 +67,11 @@ const ProductLists = () => {
                   <td className="px-4 py-3">
                     <label className="relative inline-flex items-center cursor-pointer text-gray-900 gap-3">
                       <input
+                        onChange={() => toggleStock(product._id, !product.inStock)}
+                        checked={product.inStock}
                         type="checkbox"
                         className="sr-only peer"
-                        defaultChecked={product.inStock}
+                        disabled={loading}
                       />
                       <div className="w-12 h-7 bg-slate-300 rounded-full peer peer-checked:bg-green-600 transition-colors duration-200"></div>
                       <span className="dot absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform duration-200 ease-in-out peer-checked:translate-x-5"></span>

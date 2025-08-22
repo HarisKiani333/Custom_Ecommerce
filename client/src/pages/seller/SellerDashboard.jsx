@@ -2,12 +2,9 @@ import { PackagePlus, PackageSearch, PackageCheck } from "lucide-react";
 import Logo from "../../assets/img/husk_logo.png";
 import { useAppContext } from "../../context/AppContext";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import * as Icons from "lucide-react";
-
+import toast from "react-hot-toast";
 
 const SellerDashboard = () => {
-  
-  
   const sidebarLinks = [
     { name: "Add Product", path: "/seller/add-product", icon: <PackagePlus /> },
     {
@@ -18,7 +15,27 @@ const SellerDashboard = () => {
     { name: "Order List", path: "/seller/order-list", icon: <PackageCheck /> },
   ];
 
-  const { setIsSeller } = useAppContext();
+  const { navigate, axios, setIsSeller } = useAppContext();
+
+const handleLogout = async () => {
+  try {
+    const { data } = await axios.get("/api/seller/logout");
+      console.log(data);
+
+    if (data.success || data.message === "Logout Successful") {
+      toast.success(data.message || "Logout Successful");
+      setIsSeller(false);
+      navigate("/seller-login");
+    } else {
+      console.log(data);
+
+      toast.error(data.message || "Logout failed");
+    }
+  } catch (error) {
+    console.error(error);
+    toast.error(error.response?.data?.message || "Network error, please try again");
+  }
+};
 
   return (
     <>
@@ -30,8 +47,7 @@ const SellerDashboard = () => {
           <p>Hi! Admin</p>
           <button
             onClick={() => {
-              setIsSeller(false);
-              navigate("/seller-login");
+              handleLogout();
             }}
             className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors duration-300
             cursor-pointer"

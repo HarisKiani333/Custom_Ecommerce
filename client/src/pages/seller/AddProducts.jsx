@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { ImageUpIcon } from "lucide-react";
 import { categories } from "../../assets/assests";
+import { useAppContext } from "../../context/AppContext";
+import toast from "react-hot-toast";
 
 const AddProducts = () => {
+  const { axios } = useAppContext(); // Move this to top level
   const [files, setFiles] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -11,12 +14,52 @@ const AddProducts = () => {
   const [offerPrice, setOfferPrice] = useState("");
 
   const onSubmitHandler = async (e) => {
-    e.preventDefault();
-  };
+    try {
+      e.preventDefault();
 
+      const productData = {
+        name,
+        description: description.split("\n"),
+        price,
+        category,
+        offerPrice,
+        inStock: true,
+      };
+
+      const formData = new FormData();
+      formData.append("productData", JSON.stringify(productData));
+      for (let i = 0; i < files.length; i++) {
+        formData.append("images", files[i]);
+      }
+
+      const { data } = await axios.post("/api/product/add", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (data.success) {
+        toast.success(data.message);
+        setName("");
+        setDescription("");
+        setPrice("");
+        setCategory("");
+        setOfferPrice("");
+        setFiles([]);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+      console.log(error);
+    }
+  };
   return (
     <div className="py-10 flex flex-col justify-between bg-white">
-      <form className="md:p-10 p-4 space-y-5 max-w-lg">
+      <form
+        onSubmit={onSubmitHandler}
+        className="md:p-10 p-4 space-y-5 max-w-lg"
+      >
         <div>
           <p className="text-base font-medium">Product Image</p>
           <div className="flex flex-wrap items-center gap-3 mt-2">
@@ -131,8 +174,10 @@ const AddProducts = () => {
             />
           </div>
         </div>
-        <button className="px-8 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-full
-        cursor-pointer">
+        <button
+          type="submit"
+          className="px-8 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-full cursor-pointer"
+        >
           ADD
         </button>
       </form>

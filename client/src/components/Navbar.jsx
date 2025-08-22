@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Menu, X, Search, ShoppingCart, User } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +14,7 @@ const Navbar = () => {
     searchQuery,
     setSearchQuery,
     getCartCount,
+    axios,
   } = useAppContext();
   const dropdownRef = useRef(null);
 
@@ -23,9 +25,21 @@ const Navbar = () => {
     { name: "About", path: "/about" },
   ];
 
-  const handleLogout = () => {
-    setUser(null);
-    setShowProfileDropdown(false);
+  const handleLogout = async () => {
+    try {
+      const {data} = await axios.post("/api/user/logout");
+      if (data.success) {
+        toast.success("Logout Successful");
+        setUser(null);
+        setShowProfileDropdown(false);
+        navigate('/')
+      }else {
+        toast.error(data.message);
+
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
   // Close dropdown when clicking outside
