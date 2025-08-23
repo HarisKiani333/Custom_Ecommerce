@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const InputField = ({
   className,
@@ -20,6 +22,8 @@ const InputField = ({
 );
 
 const AddAddress = () => {
+  const { axios, user, navigate } = useAppContext();
+
   const [address, setAddress] = useState({
     firstName: "",
     lastName: "",
@@ -39,10 +43,75 @@ const AddAddress = () => {
     });
   };
 
-  const onSubmitHandler = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
-    console.log("Form Submitted", address);
+
+    // Validate user is logged in
+    if (!user || !user.id) {
+      toast.error("Please log in to add an address");
+      navigate("/");
+      return;
+    }
+
+    // Validate required fields
+    const requiredFields = [
+      "firstName",
+      "lastName",
+      "email",
+      "phone",
+      "address",
+      "city",
+      "state",
+      "zip",
+      "country",
+    ];
+    const missingFields = requiredFields.filter(
+      (field) => !address[field]?.trim()
+    );
+
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in: ${missingFields.join(", ")}`);
+      return;
+    }
+
+    try {
+      // Include both userId and address in the request payload
+      const requestPayload = {
+        userId: user.id, // Explicitly include user ID
+        address: address, // Include address data
+      };
+
+      console.log("Sending request payload:", requestPayload); // Debug log
+
+      const { data } = await axios.post("/api/address/add", requestPayload);
+
+      if (data.success) {
+        toast.success("Address Added!");
+        navigate("/cart");
+      } else {
+        console.error("Server response:", data); // Debug log
+        toast.error(data.message || "Error adding address");
+      }
+    } catch (error) {
+      console.error("Request error:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      }); // Enhanced debug logging
+
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Network error occurred"
+      );
+    }
   };
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/cart");
+    }
+  }, []);
 
   return (
     <div className="mt-24 pb-16 px-4 md:px-12">

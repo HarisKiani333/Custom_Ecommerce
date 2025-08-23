@@ -14,15 +14,11 @@ const productSchema = new mongoose.Schema(
       type: Array,
       required: true,
     },
-    price: {
-      type: Number,
-      required: true,
-    },
+    // Remove duplicate price field
     offerPrice: {
       type: Number,
       required: true,
     },
-
     image: {
       type: Array,
       required: true,

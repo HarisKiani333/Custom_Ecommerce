@@ -34,12 +34,13 @@ export const register = async (req, res) => {
 
     return res.json({
       success: true,
-      message: { user: user.email, name: user.name },
+      message: "Registration successful",
+      user: { email: user.email, name: user.name, id: user._id }
     });
   } catch (error) {
     return res.json({
       success: false,
-      error: error.message,
+      message: error.message,
     });
   }
 };
@@ -73,12 +74,13 @@ export const login = async (req, res) => {
 
     return res.json({
       success: true,
-      message: { user: user.email, name: user.name },
+      message: "Login successful",
+      user: { email: user.email, name: user.name, id: user._id }
     });
   } catch (error) {
     return res.json({
       success: false,
-      error: error.message,
+      message: error.message,
     });
   }
 };

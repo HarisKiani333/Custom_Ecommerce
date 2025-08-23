@@ -1,30 +1,39 @@
 // to add products in database <--> shown in productList on frontend
 //path /api/product/add
 import Product from "../models/Product.js";
-import { v2 } from "cloudinary";
+import { v2 } from "cloudinary"; // Import v2 directly since we only use v2
 
 export const addProduct = async (req, res) => {
   try {
-    productData = JSON.parse(req.body.productData);
-
+    console.log('Received product data:', req.body.productData);
+    console.log('Received files:', req.files);
+    
+    const productData = JSON.parse(req.body.productData);
+    
     const images = req.files;
+    if (!images || images.length === 0) {
+      return res.json({ success: false, message: "No images provided" });
+    }
+    
     let imagesUrl = await Promise.all(
       images.map(async (image) => {
-        const result = await cloudinary.uploader.upload(image.path, {
+        const result = await v2.uploader.upload(image.path, {
           resource_type: "image",
         });
-        return result.secure.url;
+        return result.secure_url;
       })
     );
-
-    await Product.create({
+    
+    const newProduct = await Product.create({
       ...productData,
-      images: imagesUrl,
+      image: imagesUrl,
     });
+    
+    console.log('Product created successfully:', newProduct._id);
     res.json({ success: true, message: "Product added successfully" });
   } catch (error) {
-    res.json({ success: false, message: "Product not added" });
-    console.log(error);
+    console.error('Product addition error:', error);
+    res.json({ success: false, message: error.message || "Product not added" });
   }
 };
 
@@ -63,10 +72,35 @@ export const productDetailByID = async (req, res) => {
 export const changeStock = async (req, res) => {
   try {
     const { id, inStock } = req.body;
-    await Product.findByIdAndUpdate(id, { inStock });
-    res.json({ success: true, message: "Stock updated" });
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Product ID is required." });
+    }
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { inStock },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedProduct) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Stock updated successfully",
+      product: updatedProduct,
+    });
   } catch (error) {
-    res.json({ success: false, message: "Stock not updated" });
-    console.log(error);
+    console.error("Error updating stock:", error);
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: "Failed to update stock. Please try again.",
+      });
   }
 };

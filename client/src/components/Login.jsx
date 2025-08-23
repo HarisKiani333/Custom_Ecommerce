@@ -44,8 +44,8 @@ const Login = () => {
       if (data.success) {
         toast.success("Login successful!");
         navigate("/");
-        // Fix: Backend returns user data in message field
-        setUser(data.message); // Changed from data.user to data.message
+        // FIX: Use data.user instead of data.message
+        setUser(data.user); // Changed from data.message to data.user
         setShowUserLogin(false);
       } else {
         toast.error(data.message || data.error || "Authentication failed");

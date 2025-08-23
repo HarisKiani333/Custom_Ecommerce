@@ -25,7 +25,7 @@ await connectCloudinary().catch((err) => console.log(err));
 
 
 
-const allowedOrigin = ["http://localhost:5173"];
+const allowedOrigin = ["http://localhost:5173", "http://localhost:5174"];
 
 app.use(express.json());
 app.use(cookieParser());
@@ -35,6 +35,8 @@ app.use(
   cors({
     origin: allowedOrigin,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
 
