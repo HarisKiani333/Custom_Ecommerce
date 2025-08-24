@@ -35,7 +35,7 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Product =
-  mongoose.models.product || mongoose.model("product", productSchema);
+// ✅ FIX: Use uppercase 'Product' to match references
+const Product = mongoose.models.Product || mongoose.model("Product", productSchema);
 
 export default Product;

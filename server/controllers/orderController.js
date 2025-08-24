@@ -5,52 +5,98 @@ import Product from "../models/Product.js";
 
 export const placeOrderCOD = async (req, res) => {
   try {
-    const { userId, items, address } = req.body;
-    if (!userId || items.length === 0 || !address) {
+    const userId = req.userId;
+    const { items, address } = req.body || {};
+
+    if (!userId || !items || items.length === 0 || !address) {
       return res.json({
         success: false,
         message: "Please fill all the fields",
       });
     }
 
-    let amount = await items.reduce(async (acc, item) => {
+    // ✅ FIX: Use Promise.all with map instead of async reduce
+    let amount = 0;
+
+    // Calculate total amount for all items
+    const itemPromises = items.map(async (item) => {
       const product = await Product.findById(item.productId);
       if (!product) {
-        return res.json({ success: false, message: "Product not found" });
+        throw new Error(`Product not found: ${item.productId}`);
       }
-      return (await acc) + product.OfferPrice * item.quantity;
-    }, 0);
+      return product.offerPrice * item.quantity;
+    });
 
-    //adding 2% tax
+    try {
+      const itemAmounts = await Promise.all(itemPromises);
+      amount = itemAmounts.reduce((sum, itemAmount) => sum + itemAmount, 0);
+    } catch (error) {
+      return res.json({
+        success: false,
+        message: error.message || "Product validation failed",
+      });
+    }
+
+    // Adding 2% tax
     amount += Math.floor(amount * 0.02);
 
-    await Order.create({
+    // ✅ Ensure amount is a valid number
+    if (isNaN(amount) || amount <= 0) {
+      return res.json({
+        success: false,
+        message: "Invalid order amount calculated",
+      });
+    }
+
+    const newOrder = await Order.create({
       userId,
-      items,
-      amount,
+      items: items.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity
+      })),
+      amount: Number(amount), // Explicitly convert to number
       address,
       paymentType: "Cash on Delivery",
     });
 
-    return res.json({ success: true, message: "Order placed successfully" });
+    return res.json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: newOrder._id,
+    });
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error("Order creation error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create order: " + error.message,
+    });
   }
 };
 
 //get all orders : /api/order/get-all-orders (for users)
 export const getUserOrders = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const orders = await Order.find({
-      userId,
-      $or: [{ paymentType: "Cash on Delivery" }, { isPaid: true }],
-    })
-      .populate("items.product address")
+    const userId = req.userId; // ✅ comes from middleware
+
+    const orders = await Order.find({ userId })
+      .populate({
+        path: 'items.productId',
+        model: 'Product'
+      })
+      .populate('address')
       .sort({ createdAt: -1 });
 
-    return res.json({ success: true, orders });
+    // Transform the data to match frontend expectations
+    const transformedOrders = orders.map(order => ({
+      ...order.toObject(),
+      items: order.items.map(item => ({
+        product: item.productId,
+        quantity: item.quantity
+      })),
+      orderDate: order.createdAt.toLocaleDateString()
+    }));
+
+    return res.json({ success: true, orders: transformedOrders });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });

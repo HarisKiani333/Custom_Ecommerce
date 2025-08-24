@@ -19,24 +19,83 @@ const AppContextProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  //fetch user auth status : user cart items and data 
-  const fetchUserStatus = async () => {
+  //fetch user auth status : user cart items and data
+  // Enhanced fetchUserStatus with better error handling and retry logic
+  const fetchUserStatus = async (retryCount = 0) => {
     try {
       const { data } = await axios.get("/api/user/is-auth");
       if (data.success) {
         setUser(data.user);
-        setCartItems(data.user.cartItems || {}); // Add fallback for cartItems
+        setCartItems(data.user.cartItems || {});
+        return true;
       } else {
         console.log("Auth check failed:", data.message);
         setUser(null);
         setCartItems({});
+        return false;
       }
     } catch (error) {
-      console.log("Auth error:", error.response?.data?.message || error.message);
-      setUser(null);
-      setCartItems({});
+      const status = error.response?.status;
+      const message = error.response?.data?.message || error.message;
+      
+      // Handle CORS/Network errors specifically
+      if (error.code === 'ERR_NETWORK' || !error.response) {
+        console.error('Network/CORS error - backend server may be down');
+        if (retryCount === 0) {
+          toast.error('Unable to connect to server. Please ensure backend is running on the correct port.');
+        }
+        setUser(null);
+        setCartItems({});
+        return false;
+      }
+      
+      // Handle different error scenarios
+      if (status === 401) {
+        // Token expired or invalid - clear user state
+        console.log("Authentication expired:", message);
+        setUser(null);
+        setCartItems({});
+        return false;
+      } else if (status >= 500 && retryCount < 2) {
+        // Server error - retry up to 2 times
+        console.log(`Server error, retrying... (${retryCount + 1}/2)`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+        return fetchUserStatus(retryCount + 1);
+      } else {
+        console.log("Auth error:", message);
+        setUser(null);
+        setCartItems({});
+        return false;
+      }
     }
   };
+  
+  // Enhanced useEffect for initial authentication check
+  useEffect(() => {
+    const initializeAuth = async () => {
+      // Always check authentication status on app load
+      await fetchUserStatus();
+      await fetchSeller();
+      
+      // Fetch products after auth check
+      if (products.length === 0) {
+        fetchProducts();
+      }
+    };
+    
+    initializeAuth();
+  }, []); // Run only once on mount
+  
+  // Add periodic auth check (optional - for long-running sessions)
+  useEffect(() => {
+    const authCheckInterval = setInterval(() => {
+      if (user) {
+        fetchUserStatus();
+      }
+    }, 15 * 60 * 1000); // Check every 15 minutes
+    
+    return () => clearInterval(authCheckInterval);
+  }, [user]);
 
   //seller status
   const fetchSeller = async () => {
@@ -82,23 +141,33 @@ const AppContextProvider = ({ children }) => {
 
   const fetchProducts = async () => {
     try {
-        const {data} = await axios.get("/api/product/list");
-       
-       if(data.success){
+      const { data } = await axios.get("/api/product/list");
+
+      if (data.success) {
         setProducts(data.products);
         console.log(data.products);
-       }
-       else
-       {
+      } else {
         toast.error("Error fetching products");
-       }
-
+      }
     } catch (error) {
       console.log(error);
       toast.error(error.message);
-    } 
+    }
   };
 
+  // Lines 67-77: First useEffect
+  useEffect(() => {
+    const initializeAuth = async () => {
+      await fetchUserStatus();
+      await fetchSeller();
+      if (products.length === 0) {
+        fetchProducts();
+      }
+    };
+    initializeAuth();
+  }, []);
+  
+  // Lines 135-139: Second useEffect (duplicate calls)
   useEffect(() => {
     fetchProducts();
     fetchSeller();
@@ -107,25 +176,24 @@ const AppContextProvider = ({ children }) => {
 
   // Fixed cart update logic - removed problematic navigation
   useEffect(() => {
-    const updateCart = async() => {
+    const updateCart = async () => {
       try {
-        const {data} = await axios.post("/api/cart/update", {cartItems});
-        if(data.success){
+        const { data } = await axios.post("/api/cart/update", { cartItems });
+        if (data.success) {
           console.log("Cart updated successfully");
-        }
-        else{
+        } else {
           console.error("Error updating cart:", data.message);
         }
       } catch (error) {
         console.log("Cart update error:", error);
       }
-    }
+    };
 
     // Only update cart if user is logged in and cartItems is not empty
-    if(user && Object.keys(cartItems).length > 0){
+    if (user) {
       updateCart();
     }
-  }, [cartItems, user]); // Added user to dependencies
+  }, [cartItems]); // Added user to dependencies
 
   const getCartCount = () => {
     let totalCount = 0;
@@ -165,7 +233,8 @@ const AppContextProvider = ({ children }) => {
     getCartCount,
     getCartAmount,
     axios,
-    fetchProducts
+    fetchProducts,
+    setCartItems
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

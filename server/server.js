@@ -11,8 +11,6 @@ import cartRouter from "./routes/cartRoute.js";
 import addressRouter from "./routes/addressRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 
-
-
 // Load environment variables before using them
 dotenv.config();
 
@@ -23,20 +21,32 @@ const port = process.env.PORT || 4000;
 await connectDb().catch((err) => console.log(err));
 await connectCloudinary().catch((err) => console.log(err));
 
+// 🔴 CRITICAL: Add these missing middleware lines
+app.use(express.json()); // Parse JSON request bodies
+app.use(cookieParser()); // Parse cookies from requests
 
-
-const allowedOrigin = ["http://localhost:5173", "http://localhost:5174"];
-
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+// Enhanced CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173", 
+  "http://localhost:5174",
+];
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 200
   })
 );
 
@@ -44,14 +54,12 @@ app.get("/", (req, res) => {
   res.send("API is Working");
 });
 
-app.use("/api/user", userRouter); // the official path where func userRouter will work
+app.use("/api/user", userRouter);
 app.use("/api/seller", sellerRouter);
 app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/order", orderRouter);
-
-
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

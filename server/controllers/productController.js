@@ -71,14 +71,15 @@ export const productDetailByID = async (req, res) => {
 //path /api/product/stock
 export const changeStock = async (req, res) => {
   try {
-    const { id, inStock } = req.body;
-    if (!id) {
+    const userId = req.userId;
+    const { inStock } = req.body || {};
+    if (!userId) {
       return res
         .status(400)
         .json({ success: false, message: "Product ID is required." });
     }
     const updatedProduct = await Product.findByIdAndUpdate(
-      id,
+      userId,
       { inStock },
       { new: true } // Return the updated document
     );

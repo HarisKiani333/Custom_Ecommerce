@@ -1,10 +1,11 @@
-import {useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppContext } from "../context/AppContext";
+import toast from "react-hot-toast";
 
 const Cart = () => {
   const [showAddress, setShowAddress] = useState(false);
-  const [address, setAddress] = useState({});
-  const [selectedAddress, setSelectedAddress] = useState({});
+  const [address, setAddress] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentOptions, setPaymentOptions] = useState("Cash on Delivery");
 
   const {
@@ -16,6 +17,9 @@ const Cart = () => {
     cartItems,
     removeCartItem,
     updateCartItem,
+    axios,
+    user,
+    setCartItems,
   } = useAppContext();
 
   const cartArray = Object.keys(cartItems)
@@ -24,6 +28,70 @@ const Cart = () => {
       return product ? { ...product, quantity: cartItems[itemId] } : null;
     })
     .filter(Boolean);
+
+  const getUserAddress = async () => {
+    try {
+      // Changed from GET to POST (empty body is fine, userId comes from authUser middleware)
+      const { data } = await axios.post("/api/address/get", { address });
+      if (data.success) {
+        setAddress(data.address);
+        if (data.address.length > 0) {
+          setSelectedAddress(data.address[0]); // Fixed: was selectedAddress(data.address[0])
+        }
+      } else {
+        toast.error(data.message || "No addresses found");
+      }
+    } catch (error) {
+      console.error("Address fetch error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch addresses"
+      );
+    }
+  };
+
+  const placeOrder = async () => {
+    try {
+      if (!selectedAddress) {
+        return toast.error("Please select an Address");
+      }
+
+      //Placing order with COD
+      if (paymentOptions === "Cash on Delivery") {
+        const { data } = await axios.post("/api/order/cod", {
+          userId: user._id,
+          items: cartArray.map((item) => ({
+            productId: item._id,
+            quantity: item.quantity,
+          })),
+          address: selectedAddress._id,
+        });
+
+        if (data.success) {
+          toast.success(data.message);
+          setCartItems({});
+          navigate("/my-orders");
+        } else {
+          console.log(`Product: ${products._id}, OfferPrice: ${products.OfferPrice}`);
+          toast.error(data.message);
+          console.log(`Error is here : ${data.message} `)
+        }
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (products.length > 0 && cartItems) getCartAmount();
+  }, [products, cartItems]);
+
+  useEffect(() => {
+    if (user) {
+      getUserAddress();
+    }
+  }, [user]);
 
   return products.length > 0 && cartItems ? (
     <div className="flex flex-col md:flex-row mt-20 px-6 md:px-25">
@@ -146,24 +214,61 @@ const Cart = () => {
         <div className="mb-6">
           <p className="text-sm font-medium uppercase">Delivery Address</p>
           <div className="relative flex justify-between items-start mt-2">
-            <p className="text-gray-500">No address found</p>
+            {selectedAddress ? (
+              <div className="text-gray-700">
+                <p>
+                  {selectedAddress.firstName} {selectedAddress.lastName}
+                </p>
+                <p>
+                  {selectedAddress.address}, {selectedAddress.city}
+                </p>
+                <p>{selectedAddress.phone}</p>
+              </div>
+            ) : (
+              <p className="text-gray-500">No address selected</p>
+            )}
+
             <button
               onClick={() => setShowAddress(!showAddress)}
               className="text-indigo-500 hover:underline cursor-pointer"
             >
               Change
             </button>
+
             {showAddress && (
-              <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full">
-                <p
-                  onClick={() => setShowAddress(false)}
-                  className="text-gray-500 p-2 hover:bg-gray-100"
-                ></p>
+              <div className="absolute top-12 left-0 py-2 bg-white border border-gray-300 text-sm w-full rounded shadow-md z-10">
+                {/* List all saved addresses */}
+                {address.length > 0 ? (
+                  address.map((addr, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => {
+                        setSelectedAddress(addr);
+                        setShowAddress(false);
+                      }}
+                      className="p-2 cursor-pointer hover:bg-gray-100"
+                    >
+                      <p className="font-medium">
+                        {addr.firstName} {addr.lastName}
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        {addr.address}, {addr.city}
+                      </p>
+                      <p className="text-gray-500 text-xs">{addr.phone}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="p-2 text-gray-500">No saved addresses</p>
+                )}
+
+                <hr className="my-2" />
+
+                {/* Add new address option */}
                 <p
                   onClick={() => navigate("/add-address")}
                   className="text-indigo-500 text-center cursor-pointer p-2 hover:bg-indigo-500/10"
                 >
-                  Add address
+                  + Add New Address
                 </p>
               </div>
             )}
@@ -199,7 +304,7 @@ const Cart = () => {
                 {(getCartAmount() * 0.02).toFixed(2)}
               </span>
             </p>
-            <p className="flex justify-between text-lg font-medium mt-3">
+            <p className="flex justify-between t-ext-lg font-medium mt-3">
               <span>Total Amount:</span>
               <span>
                 {currency}
@@ -209,7 +314,10 @@ const Cart = () => {
           </div>
         )}
 
-        <button className="w-full py-3 mt-6 cursor-pointer bg-green-500 text-white font-medium hover:bg-green-600 transition">
+        <button
+          className="w-full py-3 mt-6 cursor-pointer bg-green-500 text-white font-medium hover:bg-green-600 transition"
+          onClick={placeOrder}
+        >
           Place Order
         </button>
       </div>
