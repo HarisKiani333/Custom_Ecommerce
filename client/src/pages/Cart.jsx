@@ -73,9 +73,11 @@ const Cart = () => {
           setCartItems({});
           navigate("/my-orders");
         } else {
-          console.log(`Product: ${products._id}, OfferPrice: ${products.OfferPrice}`);
+          console.log(
+            `Product: ${products._id}, OfferPrice: ${products.OfferPrice}`
+          );
           toast.error(data.message);
-          console.log(`Error is here : ${data.message} `)
+          console.log(`Error is here : ${data.message} `);
         }
       }
     } catch (error) {
@@ -276,9 +278,13 @@ const Cart = () => {
 
           <p className="text-sm font-medium uppercase mt-6">Payment Method</p>
 
-          <select className="w-full border border-gray-300 bg-white px-3 py-2 mt-2 outline-none">
-            <option value="COD">Cash On Delivery</option>
-            <option value="Online">Online Payment</option>
+          <select
+            value={paymentOptions} // ✅ controlled value
+            onChange={(e) => setPaymentOptions(e.target.value)} // ✅ update state
+            className="w-full border border-gray-300 bg-white px-3 py-2 mt-2 outline-none"
+          >
+            <option value="Cash on Delivery">Cash On Delivery</option>
+            <option value="Online Payment">Online Payment</option>
           </select>
         </div>
 
@@ -316,9 +322,17 @@ const Cart = () => {
 
         <button
           className="w-full py-3 mt-6 cursor-pointer bg-green-500 text-white font-medium hover:bg-green-600 transition"
-          onClick={placeOrder}
+          onClick={() => {
+            if (paymentOptions === "Cash on Delivery") {
+              placeOrder();
+            } else {
+              navigate("/payment"); // ✅ redirect for online
+            }
+          }}
         >
-          Place Order
+          {paymentOptions === "Cash on Delivery"
+            ? "Place Order"
+            : "Proceed to Pay"}
         </button>
       </div>
     </div>

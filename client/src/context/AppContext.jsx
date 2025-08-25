@@ -22,6 +22,13 @@ const AppContextProvider = ({ children }) => {
   //fetch user auth status : user cart items and data
   // Enhanced fetchUserStatus with better error handling and retry logic
   const fetchUserStatus = async (retryCount = 0) => {
+    // Don't check user auth if already logged in as seller
+    if (isSeller) {
+      setUser(null);
+      setCartItems({});
+      return false;
+    }
+    
     try {
       const { data } = await axios.get("/api/user/is-auth");
       if (data.success) {

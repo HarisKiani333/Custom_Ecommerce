@@ -107,12 +107,97 @@ export const getUserOrders = async (req, res) => {
 export const getSellerOrders = async (req, res) => {
   try {
     const orders = await Order.find({
-      $or: [{ paymentType: "Cash on Delivery" }, { isPaid: true }],
+      $or: [{ paymentType: "Cash on Delivery" }],
     })
-      .populate("items.product address")
+      .populate({
+        path: 'items.productId', // ✅ Fix: Use productId instead of product
+        model: 'Product'
+      })
+      .populate('address')
       .sort({ createdAt: -1 });
 
-    return res.json({ success: true, orders });
+    // ✅ Transform data to match frontend expectations
+    const transformedOrders = orders.map(order => ({
+      ...order.toObject(),
+      items: order.items.map(item => ({
+        product: item.productId, // Transform productId to product
+        quantity: item.quantity
+      }))
+    }));
+
+    return res.json({ success: true, orders: transformedOrders });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// ✅ Add new function for updating order status
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { orderId, status } = req.body;
+    
+    if (!orderId || !status) {
+      return res.json({
+        success: false,
+        message: "Order ID and status are required"
+      });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Order status updated successfully",
+      order: updatedOrder
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
+
+// Add this new function to orderController.js
+export const updatePaymentStatus = async (req, res) => {
+  try {
+    const { orderId, isPaid } = req.body;
+    
+    if (!orderId || typeof isPaid !== 'boolean') {
+      return res.json({
+        success: false,
+        message: "Order ID and payment status are required"
+      });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { isPaid },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return res.json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: "Payment status updated successfully",
+      order: updatedOrder
+    });
   } catch (error) {
     console.log(error);
     res.json({ success: false, message: error.message });
