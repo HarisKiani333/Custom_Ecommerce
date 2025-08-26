@@ -4,7 +4,8 @@ import {
   getSellerOrders,
   getUserOrders,
   updateOrderStatus,
-  updatePaymentStatus, // ✅ Add this import
+  updatePaymentStatus,
+  placeOrderGuest, // ✅ Add this import
 } from "../controllers/orderController.js";
 import { authUser } from "../middleware/authUser.js";
 import authSeller from "../middleware/authSeller.js";
@@ -15,6 +16,6 @@ orderRouter.get("/user", authUser, getUserOrders);
 orderRouter.get("/seller", authSeller, getSellerOrders);
 orderRouter.post("/cod", authUser, placeOrderCOD);
 orderRouter.put("/update-status", authSeller, updateOrderStatus);
-orderRouter.put("/update-payment", authSeller, updatePaymentStatus); // ✅ Add this route
-
+orderRouter.put("/update-payment", authSeller, updatePaymentStatus);
+orderRouter.post("/guest",placeOrderGuest);
 export default orderRouter;

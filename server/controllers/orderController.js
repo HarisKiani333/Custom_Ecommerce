@@ -203,3 +203,26 @@ export const updatePaymentStatus = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
+export const placeOrderGuest = async (req, res) => {
+  try {
+    const { items, amount, guestAddress, guestInfo, paymentType } = req.body;
+
+    if (!items?.length || !guestAddress || !guestInfo) {
+      return res.status(400).json({ success: false, message: "Invalid order data" });
+    }
+
+    const newOrder = await Order.create({
+      items,
+      amount,
+      guestAddress,
+      guestInfo,
+      paymentType,
+    });
+
+    res.json({ success: true, message: "Order placed successfully", order: newOrder });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

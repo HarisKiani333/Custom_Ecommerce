@@ -5,7 +5,7 @@ const OrderSchema = mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false, // not required for guest
     },
     items: [
       {
@@ -25,11 +25,30 @@ const OrderSchema = mongoose.Schema(
       type: Number,
       required: true,
     },
+
+    // For logged-in users only
     address: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Address",
-      required: true,
+      required: function () {
+        return !!this.userId; // required only if userId exists
+      },
     },
+
+    // For guests only
+    guestAddress: {
+      street: String,
+      city: String,
+      state: String,
+      zip: String,
+      country: String,
+    },
+    guestInfo: {
+      name: String,
+      email: String,
+      phone: String,
+    },
+
     status: {
       type: String,
       default: "Order Placed",
