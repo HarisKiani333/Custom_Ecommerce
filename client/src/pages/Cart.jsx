@@ -10,6 +10,17 @@ const Cart = () => {
     JSON.parse(localStorage.getItem("guestAddress")) || null
   );
   const [paymentOptions, setPaymentOptions] = useState("Cash on Delivery");
+  const [showAddressForm, setShowAddressForm] = useState(false);
+  const [newAddress, setNewAddress] = useState({
+    firstName: '',
+    lastName: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: '',
+    phone: ''
+  });
 
   const {
     getCartCount,
@@ -38,7 +49,7 @@ const Cart = () => {
       const { data } = await axios.post("/api/address/get");
       if (data.success) {
         setAddress(data.address);
-        if (data.address.length > 0) {
+        if (data.address.length > 0 && !selectedAddress) {
           setSelectedAddress(data.address[0]);
         }
       } else {
@@ -50,67 +61,123 @@ const Cart = () => {
     }
   };
 
+  // Add new address
+  const addNewAddress = async () => {
+    try {
+      // Validate required fields
+      const requiredFields = ['firstName', 'lastName', 'address', 'city', 'state', 'zip', 'country', 'phone'];
+      const missingFields = requiredFields.filter(field => !newAddress[field].trim());
+      
+      if (missingFields.length > 0) {
+        return toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      }
+
+      const { data } = await axios.post("/api/address/add", newAddress);
+      if (data.success) {
+        toast.success("Address added successfully");
+        setNewAddress({
+          firstName: '',
+          lastName: '',
+          address: '',
+          city: '',
+          state: '',
+          zip: '',
+          country: '',
+          phone: ''
+        });
+        setShowAddressForm(false);
+        await getUserAddress(); // Refresh addresses
+      } else {
+        toast.error(data.message || "Failed to add address");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message || "Failed to add address");
+    }
+  };
+
+  // Handle address selection
+  const handleAddressSelect = (addr) => {
+    setSelectedAddress(addr);
+    setShowAddress(false);
+    toast.success("Address selected successfully");
+  };
+
+  // Handle input change for new address form
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewAddress(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   // Save guest address locally
   const saveGuestAddress = (addr) => {
     setGuestAddress(addr);
     localStorage.setItem("guestAddress", JSON.stringify(addr));
   };
 
-const placeOrder = async () => {
-  try {
-    if (!cartArray.length) return toast.error("Cart is empty");
+  const placeOrder = async () => {
+    try {
+      if (!cartArray.length) return toast.error("Cart is empty");
 
-    let payload = {
-      items: cartArray.map((item) => ({
-        productId: item._id,
-        quantity: item.quantity,
-      })),
-      amount: getCartAmount() * 1.02, // optional: include tax
-      paymentType: paymentOptions,
-    };
-
-    if (user) {
-      // Logged-in user
-      if (!selectedAddress?._id) return toast.error("Please select or add an address");
-
-      payload.userId = user._id;
-      payload.address = selectedAddress._id; // ObjectId for logged-in users
-    } else {
-      // Guest user
-      if (!guestAddress) return toast.error("Please add shipping details");
-
-      payload.guestAddress = {
-        street: guestAddress.address,
-        city: guestAddress.city,
-        state: guestAddress.state,
-        zip: guestAddress.zip,
-        country: guestAddress.country,
+      let payload = {
+        items: cartArray.map((item) => ({
+          productId: item._id,
+          quantity: item.quantity,
+        })),
       };
-      payload.guestInfo = {
-        name: guestAddress.fullName,
-        email: guestAddress.email,
-        phone: guestAddress.phone,
-      };
+
+      if (user) {
+        if (!selectedAddress?._id)
+          return toast.error("Please select or add an address");
+        payload.userId = user._id;
+        payload.address = selectedAddress._id; // objectId for DB
+      } else {
+        if (!guestAddress) return toast.error("Please add shipping details");
+        payload.address = {
+          street: guestAddress.address,
+          city: guestAddress.city,
+          state: guestAddress.state,
+          zip: guestAddress.zip,
+          country: guestAddress.country,
+        };
+        payload.guestInfo = {
+          name: guestAddress.fullName,
+          email: guestAddress.email,
+          phone: guestAddress.phone,
+        };
+      }
+
+      if (paymentOptions === "Cash on Delivery") {
+        // COD order
+        const { data } = await axios.post(
+          user ? "/api/order/cod" : "/api/order/guest",
+          payload
+        );
+        if (data.success) {
+          toast.success(data.message || "Order placed successfully");
+          setCartItems({});
+          if (!user) localStorage.removeItem("guestAddress");
+          navigate(user ? "/my-orders" : "/");
+        } else {
+          toast.error(data.message);
+        }
+      } else {
+        // Online payment via Stripe
+        const { data } = await axios.post("/api/order/online", payload);
+        if (data.success && data.url) {
+          // Redirect to Stripe checkout
+          window.location.href = data.url;
+        } else {
+          toast.error(data.message || "Failed to initiate payment");
+        }
+      }
+    } catch (error) {
+      toast.error(error.message);
     }
-
-    const { data } = await axios.post(
-      user ? "/api/order/cod" : "/api/order/guest",
-      payload
-    );
-
-    if (data.success) {
-      toast.success(data.message || "Order placed successfully");
-      setCartItems({});
-      if (!user) localStorage.removeItem("guestAddress");
-      navigate(user ? "/my-orders" : "/");
-    } else {
-      toast.error(data.message);
-    }
-  } catch (error) {
-    toast.error(error.message);
-  }
-};
-
+  };
 
   useEffect(() => {
     if (user) getUserAddress();
@@ -125,7 +192,9 @@ const placeOrder = async () => {
       <div className="flex-1 max-w-4xl">
         <h1 className="text-3xl font-medium mb-6">
           Shopping Cart{" "}
-          <span className="text-sm text-indigo-500">{getCartCount()} Items</span>
+          <span className="text-sm text-indigo-500">
+            {getCartCount()} Items
+          </span>
         </h1>
 
         <div className="grid grid-cols-[2fr_1fr_1fr] text-gray-500 text-base font-medium pb-3">
@@ -142,7 +211,9 @@ const placeOrder = async () => {
             <div className="flex items-center md:gap-6 gap-3">
               <div
                 onClick={() => {
-                  navigate(`/products/${product.category.toLowerCase()}/${product._id}`);
+                  navigate(
+                    `/products/${product.category.toLowerCase()}/${product._id}`
+                  );
                   scrollTo(0, 0);
                 }}
                 className="cursor-pointer w-24 h-24 flex items-center justify-center border border-gray-300 rounded overflow-hidden"
@@ -163,10 +234,14 @@ const placeOrder = async () => {
                     <p>Qty:</p>
                     <select
                       value={product.quantity}
-                      onChange={(e) => updateCartItem(product._id, Number(e.target.value))}
+                      onChange={(e) =>
+                        updateCartItem(product._id, Number(e.target.value))
+                      }
                       className="outline-none"
                     >
-                      {Array.from({ length: Math.max(9, product.quantity) }).map((_, idx) => (
+                      {Array.from({
+                        length: Math.max(9, product.quantity),
+                      }).map((_, idx) => (
                         <option key={idx} value={idx + 1}>
                           {idx + 1}
                         </option>
@@ -180,7 +255,10 @@ const placeOrder = async () => {
               {currency}
               {product.offerPrice * product.quantity}
             </p>
-            <button onClick={() => removeCartItem(product._id)} className="cursor-pointer mx-auto">
+            <button
+              onClick={() => removeCartItem(product._id)}
+              className="cursor-pointer mx-auto"
+            >
               {/* delete icon */}
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path
@@ -238,15 +316,149 @@ const placeOrder = async () => {
 
             <button
               onClick={() =>
-                user
-                  ? setShowAddress(!showAddress)
-                  : navigate("/add-address")
+                user ? setShowAddress(!showAddress) : navigate("/add-address")
               }
               className="text-indigo-500 hover:underline cursor-pointer"
             >
               {user ? "Change" : "Add Address"}
             </button>
           </div>
+
+          {/* Enhanced Address Management Modal */}
+          {user && showAddress && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Select Address</h3>
+                  <button
+                    onClick={() => setShowAddress(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Existing Addresses */}
+                {address.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Saved Addresses</h4>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {address.map((addr) => (
+                        <div
+                          key={addr._id}
+                          onClick={() => handleAddressSelect(addr)}
+                          className={`p-3 border rounded cursor-pointer hover:border-indigo-500 transition-colors ${
+                            selectedAddress?._id === addr._id
+                              ? "border-indigo-500 bg-indigo-50"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          <p className="font-medium">
+                            {addr.firstName} {addr.lastName}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {addr.address}, {addr.city}, {addr.state} {addr.zip}
+                          </p>
+                          <p className="text-sm text-gray-600">{addr.phone}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Add New Address Button */}
+                <button
+                  onClick={() => setShowAddressForm(!showAddressForm)}
+                  className="w-full py-2 px-4 bg-green-500 text-white rounded hover:bg-green-600 transition-colors mb-4"
+                >
+                  {showAddressForm ? "Cancel" : "Add New Address"}
+                </button>
+
+                {/* New Address Form */}
+                {showAddressForm && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-gray-700">Add New Address</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        name="firstName"
+                        placeholder="First Name"
+                        value={newAddress.firstName}
+                        onChange={handleInputChange}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        name="lastName"
+                        placeholder="Last Name"
+                        value={newAddress.lastName}
+                        onChange={handleInputChange}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      name="address"
+                      placeholder="Street Address"
+                      value={newAddress.address}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        name="city"
+                        placeholder="City"
+                        value={newAddress.city}
+                        onChange={handleInputChange}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        name="state"
+                        placeholder="State"
+                        value={newAddress.state}
+                        onChange={handleInputChange}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        name="zip"
+                        placeholder="ZIP Code"
+                        value={newAddress.zip}
+                        onChange={handleInputChange}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        name="country"
+                        placeholder="Country"
+                        value={newAddress.country}
+                        onChange={handleInputChange}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                      />
+                    </div>
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Phone Number"
+                      value={newAddress.phone}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      onClick={addNewAddress}
+                      className="w-full py-2 px-4 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                    >
+                      Save Address
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <p className="text-sm font-medium uppercase mt-6">Payment Method</p>
           <select
@@ -281,9 +493,12 @@ const placeOrder = async () => {
                 {(getCartAmount() * 0.02).toFixed(2)}
               </span>
             </p>
-            <p className="flex justify-between t-ext-lg font-medium mt-3">
+            <p className="flex justify-between text-lg font-medium mt-3">
               <span>Total Amount:</span>
-              <span>{currency}{(getCartAmount() * 1.02).toFixed(2)}</span>
+              <span>
+                {currency}
+                {(getCartAmount() * 1.02).toFixed(2)}
+              </span>
             </p>
           </div>
         )}
@@ -292,7 +507,9 @@ const placeOrder = async () => {
           className="w-full py-3 mt-6 cursor-pointer bg-green-500 text-white font-medium hover:bg-green-600 transition"
           onClick={placeOrder}
         >
-          {paymentOptions === "Cash on Delivery" ? "Place Order" : "Proceed to Pay"}
+          {paymentOptions === "Cash on Delivery"
+            ? "Place Order"
+            : "Proceed to Pay"}
         </button>
       </div>
     </div>

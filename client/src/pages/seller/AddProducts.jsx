@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ImageUpIcon } from "lucide-react";
-import { categories } from "../../assets/assests";
+import { categories } from "../../assets/assets";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 

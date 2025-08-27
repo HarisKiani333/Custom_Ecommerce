@@ -18,6 +18,9 @@ const AppContextProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Add loading state for initial user data fetching
+  const [loadingUser, setLoadingUser] = useState(true);
 
   //fetch user auth status : user cart items and data
   // Enhanced fetchUserStatus with better error handling and retry logic
@@ -26,6 +29,7 @@ const AppContextProvider = ({ children }) => {
     if (isSeller) {
       setUser(null);
       setCartItems({});
+      setLoadingUser(false);
       return false;
     }
     
@@ -34,11 +38,13 @@ const AppContextProvider = ({ children }) => {
       if (data.success) {
         setUser(data.user);
         setCartItems(data.user.cartItems || {});
+        setLoadingUser(false);
         return true;
       } else {
         console.log("Auth check failed:", data.message);
         setUser(null);
         setCartItems({});
+        setLoadingUser(false);
         return false;
       }
     } catch (error) {
@@ -53,6 +59,7 @@ const AppContextProvider = ({ children }) => {
         }
         setUser(null);
         setCartItems({});
+        setLoadingUser(false);
         return false;
       }
       
@@ -62,6 +69,7 @@ const AppContextProvider = ({ children }) => {
         console.log("Authentication expired:", message);
         setUser(null);
         setCartItems({});
+        setLoadingUser(false);
         return false;
       } else if (status >= 500 && retryCount < 2) {
         // Server error - retry up to 2 times
@@ -72,6 +80,7 @@ const AppContextProvider = ({ children }) => {
         console.log("Auth error:", message);
         setUser(null);
         setCartItems({});
+        setLoadingUser(false);
         return false;
       }
     }
@@ -92,6 +101,13 @@ const AppContextProvider = ({ children }) => {
     
     initializeAuth();
   }, []); // Run only once on mount
+  
+  // Remove the duplicate useEffect that was causing issues
+  // useEffect(() => {
+  //   fetchProducts();
+  //   fetchSeller();
+  //   fetchUserStatus();
+  // }, []);
   
   // Add periodic auth check (optional - for long-running sessions)
   useEffect(() => {
@@ -224,24 +240,27 @@ const AppContextProvider = ({ children }) => {
   const value = {
     user,
     setUser,
-    setIsSeller,
     isSeller,
+    setIsSeller,
     showUserLogin,
     setShowUserLogin,
-    navigate,
     products,
-    currency,
+    setProducts,
     cartItems,
+    setCartItems,
+    searchQuery,
+    setSearchQuery,
+    loadingUser, // Add loadingUser to context value
+    navigate,
+    currency,
+    axios,
     addCartItem,
     updateCartItem,
     removeCartItem,
-    searchQuery,
-    setSearchQuery,
     getCartCount,
     getCartAmount,
-    axios,
+    fetchUserStatus,
     fetchProducts,
-    setCartItems
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

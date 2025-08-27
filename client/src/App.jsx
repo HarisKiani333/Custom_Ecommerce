@@ -1,5 +1,5 @@
 import Navbar from "./components/Navbar";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate, useSearchParams } from "react-router-dom";
 import Home from "./pages/Home";
 import BackToTop from "./components/BackToTop";
 import Footer from "./components/Footer";
@@ -17,50 +17,75 @@ import SellerDashboard from "./pages/seller/SellerDashboard";
 import AddProducts from "./pages/seller/AddProducts";
 import ProductsList from "./pages/seller/ProductsList";
 import OrdersList from "./pages/seller/OrdersList";
+import Loader from "./pages/Loader";
+import UniversalLoader from "./components/UniversalLoader";
 
-const App = () => {
-  const isSellerPath = useLocation().pathname.includes("seller");
-  const { showUserLogin, isSeller } = useAppContext();
+function App() {
+  const { showUserLogin, user, isSeller } = useAppContext();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   return (
-    <div className="item-default min-h-screen text-grey-700 bg-white">
-      {!isSellerPath && <Navbar />}
-      {showUserLogin && <Login />}
-      <Toaster position="top-right" />
-
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/products" element={<AllProducts />} />
-        <Route path="/products/:category/:id" element={<ProductDetails />} />
-        <Route path="/products/:category" element={<ProductCategory />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/add-address" element={<AddAddress />} />
-        <Route path="/my-orders" element={<MyOrderPage />} />
-
-        {/* Seller Routes */}
-        <Route
-          path="/seller"
-          element={
-            isSeller ? <SellerDashboard /> : <Navigate to="/seller-login" />
-          }
-        >
-          <Route  path= "add-product" element={<AddProducts />} />
-          <Route path="product-list" element={<ProductsList />} />
-          <Route path="order-list" element={<OrdersList />} />
-        </Route>
-
-        {/* Seller Login Route */}
-        <Route
-          path="/seller-login"
-          element={!isSeller ? <SellerLogin /> : <Navigate to="/seller" />}
-        />
-      </Routes>
-
-      <BackToTop />
-      {!isSellerPath && <Footer />}
-    </div>
+    <UniversalLoader>
+      <div className="App">
+        {/* Show login modal */}
+        {showUserLogin && <Login />}
+        
+        {/* Show navbar only if not on seller routes */}
+        {!location.pathname.startsWith("/seller") && <Navbar />}
+        
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<AllProducts />} />
+          <Route path="/products/:category" element={<ProductCategory />} />
+          <Route path="/products/:category/:id" element={<ProductDetails />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/contacts" element={<div>Contact Page</div>} />
+          <Route path="/about" element={<div>About Page</div>} />
+          
+          {/* Protected User Routes */}
+          <Route
+            path="/my-orders"
+            element={user ? <MyOrderPage /> : <Navigate to="/my-orders" />}
+          />
+          <Route
+            path="/add-address"
+            element={!user ? <AddAddress /> : <Navigate to="/add-address" />}
+          />
+          
+          {/* Loader route - maintain existing functionality for payment flows */}
+          <Route
+            path="/loader"
+            element={
+              <Loader
+                type={searchParams.get("type") || "navigation"}
+                message={searchParams.get("message")}
+                delay={parseInt(searchParams.get("delay")) || 2000}
+              />
+            }
+          />
+          
+          {/* Seller Routes */}
+          <Route path="/seller-login" element={<SellerLogin />} />
+          <Route
+            path="/seller"
+            element={isSeller ? <SellerDashboard /> : <Navigate to="/seller-login" />}
+          >
+            <Route path="add-product" element={<AddProducts />} />
+            <Route path="product-list" element={<ProductsList />} />
+            <Route path="order-list" element={<OrdersList />} />
+          </Route>
+        </Routes>
+        
+        {/* Show footer only if not on seller routes */}
+        {!location.pathname.startsWith("/seller") && <Footer />}
+        
+        <BackToTop />
+        <Toaster />
+      </div>
+    </UniversalLoader>
   );
-};
+}
 
 export default App;
