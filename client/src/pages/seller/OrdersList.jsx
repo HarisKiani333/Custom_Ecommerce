@@ -25,6 +25,28 @@ const OrdersList = () => {
     }, 0);
   };
 
+  // Helper function to get customer info from order
+  const getCustomerInfo = (order) => {
+    if (order.address) {
+      // Logged-in user order
+      return {
+        name: `${order.address.firstName} ${order.address.lastName}`,
+        location: `${order.address.city}, ${order.address.country}`,
+      };
+    } else if (order.guestInfo && order.guestAddress) {
+      // Guest order
+      return {
+        name: order.guestInfo.name,
+        location: `${order.guestAddress.city}, ${order.guestAddress.country}`,
+      };
+    }
+    // Fallback for incomplete data
+    return {
+      name: "Unknown Customer",
+      location: "Unknown Location",
+    };
+  };
+
   const fetchOrders = async () => {
     try {
       const { data } = await axios.get("/api/order/seller");
@@ -143,99 +165,105 @@ const OrdersList = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.map((order) => (
-                <tr
-                  key={order._id}
-                  className="border-b border-gray-200 hover:bg-gray-50"
-                >
-                  <td className="p-3">#{order._id}</td>
+              {filteredOrders.map((order) => {
+                const customerInfo = getCustomerInfo(order);
+                return (
+                  <tr
+                    key={order._id}
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                  >
+                    <td className="p-3">#{order._id}</td>
 
-                  <td className="p-3">
-                    <div>
-                      <p className="font-medium">
-                        {order.address.firstName} {order.address.lastName}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {order.address.city}, {order.address.country}
-                      </p>
-                    </div>
-                  </td>
+                    <td className="p-3">
+                      <div>
+                        <p className="font-medium">{customerInfo.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {customerInfo.location}
+                        </p>
+                        {!order.userId && (
+                          <span className="inline-block mt-1 px-2 py-0.5 bg-orange-100 text-orange-800 text-xs rounded-full">
+                            Guest
+                          </span>
+                        )}
+                      </div>
+                    </td>
 
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="relative">
-                          <img
-                            src={item.product.image[0]}
-                            alt={item.product.name}
-                            className="w-10 h-10 object-cover rounded-md"
-                          />
-                          {item.quantity > 1 && (
-                            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                              {item.quantity}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className="relative">
+                            <img
+                              src={item.product.image[0]}
+                              alt={item.product.name}
+                              className="w-10 h-10 object-cover rounded-md"
+                            />
+                            {item.quantity > 1 && (
+                              <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {item.quantity}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
 
-                  <td className="p-3 font-medium">
-                    {currency} {calculateOrderTotal(order.items).toFixed(2)}
-                  </td>
+                    <td className="p-3 font-medium">
+                      {currency} {calculateOrderTotal(order.items).toFixed(2)}
+                    </td>
 
-                  <td className="p-3 text-sm">
-                    {order.createdAt
-                      ? new Date(order.createdAt).toLocaleDateString()
-                      : "N/A"}
-                  </td>
+                    <td className="p-3 text-sm">
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString()
+                        : "N/A"}
+                    </td>
 
-                  {/* Payment status toggle */}
-                  <td className="p-3">
-                    <button
-                      onClick={() =>
-                        updatePaymentStatus(order._id, !order.isPaid)
-                      }
-                      className={`px-2 py-1 rounded-full text-xs cursor-pointer transition-colors ${
-                        order.isPaid
-                          ? "bg-green-100 text-green-800 hover:bg-green-200"
-                          : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                      }`}
-                    >
-                      {order.isPaid ? "Paid" : "Pending"}
-                    </button>
-                  </td>
-
-                  {/* Order status */}
-                  <td className="p-3">
-                    <select
-                      defaultValue={order.status || "New"}
-                      onChange={(e) =>
-                        updateOrderStatus(order._id, e.target.value)
-                      }
-                      className="border border-gray-300 rounded px-2 py-1 text-sm w-full"
-                    >
-                      {orderStatuses.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-
-                  {/* Action buttons */}
-                  <td className="p-3">
-                    <div className="flex gap-2">
-                      <button className="p-1 text-blue-600 hover:text-blue-800">
-                        👁
+                    {/* Payment status toggle */}
+                    <td className="p-3">
+                      <button
+                        onClick={() =>
+                          updatePaymentStatus(order._id, !order.isPaid)
+                        }
+                        className={`px-2 py-1 rounded-full text-xs cursor-pointer transition-colors ${
+                          order.isPaid
+                            ? "bg-green-100 text-green-800 hover:bg-green-200"
+                            : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                        }`}
+                      >
+                        {order.isPaid ? "Paid" : "Pending"}
                       </button>
-                      <button className="p-1 text-green-600 hover:text-green-800">
-                        📄
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+
+                    {/* Order status */}
+                    <td className="p-3">
+                      <select
+                        defaultValue={order.status || "New"}
+                        onChange={(e) =>
+                          updateOrderStatus(order._id, e.target.value)
+                        }
+                        className="border border-gray-300 rounded px-2 py-1 text-sm w-full"
+                      >
+                        {orderStatuses.map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    {/* Action buttons */}
+                    <td className="p-3">
+                      <div className="flex gap-2">
+                        <button className="p-1 text-blue-600 hover:text-blue-800">
+                          👁
+                        </button>
+                        <button className="p-1 text-green-600 hover:text-green-800">
+                          📄
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
 
               {filteredOrders.length === 0 && (
                 <tr>

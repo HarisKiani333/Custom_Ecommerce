@@ -69,19 +69,30 @@ export const productDetailByID = async (req, res) => {
 
 // to change stock of product in databse
 //path /api/product/stock
+// Fixed version
 export const changeStock = async (req, res) => {
   try {
-    const userId = req.userId;
-    const { inStock } = req.body || {};
-    if (!userId) {
+    const { id, inStock } = req.body || {};  // ✅ Extract product ID from request body
+    
+    // ✅ Validate product ID
+    if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "Product ID is required." });
     }
+    
+    // ✅ Validate inStock parameter
+    if (typeof inStock !== 'boolean') {
+      return res
+        .status(400)
+        .json({ success: false, message: "Stock status must be a boolean value." });
+    }
+    
+    // ✅ Use the correct product ID to find and update
     const updatedProduct = await Product.findByIdAndUpdate(
-      userId,
+      id,  // ✅ Use product ID instead of userId
       { inStock },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     if (!updatedProduct) {
