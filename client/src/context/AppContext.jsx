@@ -22,9 +22,73 @@ const AppContextProvider = ({ children }) => {
   // Add loading state for initial user data fetching
   const [loadingUser, setLoadingUser] = useState(true);
 
+  // Token refresh function
+  const refreshToken = async () => {
+    try {
+      // Check if we have cookies before attempting refresh
+      if (!document.cookie.includes('token=')) {
+        console.log("No token found, skipping refresh");
+        return false;
+      }
+      
+      const { data } = await axios.post("/api/user/refresh");
+      if (data.success) {
+        console.log("Token refreshed successfully");
+        return true;
+      } else {
+        console.log("Token refresh failed:", data.message);
+        return false;
+      }
+    } catch (error) {
+      console.log("Token refresh error:", error.response?.data?.message || error.message);
+      return false;
+    }
+  };
+
+  // Setup axios interceptors for automatic token refresh
+  useEffect(() => {
+    const responseInterceptor = axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        
+        // Don't retry refresh requests to avoid infinite loops
+        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/refresh')) {
+          originalRequest._retry = true;
+          
+          const refreshSuccess = await refreshToken();
+          if (refreshSuccess) {
+            // Retry the original request
+            return axios(originalRequest);
+          } else {
+            // Token refresh failed - clear user state and redirect to login
+            setUser(null);
+            setCartItems({});
+            return Promise.reject(error);
+          }
+        }
+        
+        return Promise.reject(error);
+      }
+    );
+
+    // Cleanup interceptor on unmount
+    return () => {
+      axios.interceptors.response.eject(responseInterceptor);
+    };
+  }, []);
+
   //fetch user auth status : user cart items and data
   // Enhanced fetchUserStatus with better error handling and retry logic
   const fetchUserStatus = async (retryCount = 0) => {
+    if (retryCount >= 3) {
+      console.log("Max retries reached for fetchUserStatus");
+      setUser(null);
+      setCartItems({});
+      setLoadingUser(false);
+      return false;
+    }
+    
     // Don't check user auth if already logged in as seller
     if (isSeller) {
       setUser(null);
@@ -65,12 +129,19 @@ const AppContextProvider = ({ children }) => {
       
       // Handle different error scenarios
       if (status === 401) {
-        // Token expired or invalid - clear user state
-        console.log("Authentication expired:", message);
-        setUser(null);
-        setCartItems({});
-        setLoadingUser(false);
-        return false;
+        // Try to refresh token before clearing user state
+        console.log("Authentication expired, attempting token refresh:", message);
+        const refreshSuccess = await refreshToken();
+        if (refreshSuccess) {
+          // Retry the original request after successful token refresh
+          return fetchUserStatus(retryCount + 1);
+        } else {
+          // Token refresh failed - clear user state
+          setUser(null);
+          setCartItems({});
+          setLoadingUser(false);
+          return false;
+        }
       } else if (status >= 500 && retryCount < 2) {
         // Server error - retry up to 2 times
         console.log(`Server error, retrying... (${retryCount + 1}/2)`);
@@ -178,7 +249,7 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Lines 67-77: First useEffect
+  // Initialize authentication and data on app load
   useEffect(() => {
     const initializeAuth = async () => {
       await fetchUserStatus();
@@ -188,13 +259,6 @@ const AppContextProvider = ({ children }) => {
       }
     };
     initializeAuth();
-  }, []);
-  
-  // Lines 135-139: Second useEffect (duplicate calls)
-  useEffect(() => {
-    fetchProducts();
-    fetchSeller();
-    fetchUserStatus();
   }, []);
 
   // Fixed cart update logic - removed problematic navigation

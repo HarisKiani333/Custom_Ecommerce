@@ -9,6 +9,7 @@ const Login = () => {
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const [errors, setErrors] = React.useState({ email: "", password: "" });
 
@@ -33,6 +34,7 @@ const Login = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
       // API call to either login or register
       const { data } = await axios.post(`/api/user/${state}`, {
@@ -53,6 +55,8 @@ const Login = () => {
     } catch (error) {
       console.error('Login error:', error);
       toast.error(error.response?.data?.message || error.response?.data?.error || "An error occurred");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -154,10 +158,21 @@ const Login = () => {
         )}
 
         <button
-          className="bg-green-600 hover:bg-green-700 transition-all text-white w-full py-2 rounded-full cursor-pointer"
-          disabled={!!errors.email || !!errors.password}
+          className={`w-full py-2 rounded-full transition-all text-white flex items-center justify-center ${
+            isLoading || !!errors.email || !!errors.password
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700 cursor-pointer"
+          }`}
+          disabled={isLoading || !!errors.email || !!errors.password}
         >
-          {state === "register" ? "Create Account" : "Login"}
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              {state === "register" ? "Creating Account..." : "Logging in..."}
+            </>
+          ) : (
+            state === "register" ? "Create Account" : "Login"
+          )}
         </button>
       </form>
     </div>

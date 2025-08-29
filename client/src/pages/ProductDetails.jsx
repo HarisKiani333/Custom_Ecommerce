@@ -5,13 +5,45 @@ import StarRating from "../components/StarRating";
 import ProductCard from "../components/ProductCard";
 
 const ProductDetails = () => {
-  const { products, navigate, currency, addCartItem } = useAppContext();
+  const { products, navigate, currency, addCartItem, loadingUser } = useAppContext();
   const { category, id } = useParams();
 
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [thumbnail, setThumbnail] = useState(null);
 
   const product = products.find((p) => p._id === id);
+
+  // Show loading state while products are being fetched or product not found
+  if (loadingUser || (products.length > 0 && !product)) {
+    return (
+      <div className="mt-16 px-4 pb-28 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {loadingUser ? "Loading product details..." : "Product not found"}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // If products are loaded but product is not found, show not found message
+  if (products.length > 0 && !product) {
+    return (
+      <div className="mt-16 px-4 pb-28 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-medium text-gray-800 mb-2">Product Not Found</h2>
+          <p className="text-gray-600 mb-4">The product you're looking for doesn't exist.</p>
+          <button
+            onClick={() => navigate('/products')}
+            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
+          >
+            Browse Products
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (products.length > 0) {

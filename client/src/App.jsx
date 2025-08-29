@@ -27,14 +27,15 @@ function App() {
 
   return (
     <UniversalLoader>
-      <div className="App">
+      <div className="App flex flex-col min-h-screen">
         {/* Show login modal */}
         {showUserLogin && <Login />}
         
         {/* Show navbar only if not on seller routes */}
         {!location.pathname.startsWith("/seller") && <Navbar />}
         
-        <Routes>
+        <main className="flex-grow">
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<AllProducts />} />
@@ -76,7 +77,8 @@ function App() {
             <Route path="product-list" element={<ProductsList />} />
             <Route path="order-list" element={<OrdersList />} />
           </Route>
-        </Routes>
+          </Routes>
+        </main>
         
         {/* Show footer only if not on seller routes */}
         {!location.pathname.startsWith("/seller") && <Footer />}

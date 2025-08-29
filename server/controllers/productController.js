@@ -41,13 +41,16 @@ export const addProduct = async (req, res) => {
 export const productList = async (req, res) => {
   try {
     const products = await Product.find({});
-    res.json({ success: true, products });
-    console.log(products);
+    console.log('Products found:', products.length);
+    
     if (products.length === 0) {
-      return res.json({ success: false, message: "No products found" });
+      return res.json({ success: true, products: [], message: "No products found" });
     }
+    
+    res.json({ success: true, products });
   } catch (error) {
-    res.json({ success: false, message: "Product not added" });
+    console.error('Product list error:', error);
+    res.json({ success: false, message: "Failed to fetch products" });
     console.log(error);
   }
 };

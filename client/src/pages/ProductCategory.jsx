@@ -39,26 +39,31 @@ const ProductCategory = () => {
   return (
     <div>
       <div className="mt-16">
-        <div className="flex flex-col items-end w-max mb-6">
+        <div className="text-center mb-10">
           {searchCategory && (
             <>
-              <p className="text-2xl md:text-3xl font-medium">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
                 {searchCategory.text}
-              </p>
-              <div className="w-16 h-0.5 bg-green-600 rounded-full"></div>
+              </h1>
+              <div className="w-24 h-1 bg-gradient-to-r from-green-500 to-green-600 rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-600 text-sm md:text-base">Explore our fresh selection of {searchCategory.text.toLowerCase()}</p>
             </>
           )}
           {filteredProducts.length > 0 ? (
             <div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product._id} product={product} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                {filteredProducts.map((product, index) => (
+                  <div key={product._id} className="animate-in fade-in-50 slide-in-from-bottom-4 duration-500" style={{animationDelay: `${index * 50}ms`}}>
+                    <ProductCard product={product} />
+                  </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div>
-              <p>No products found</p>
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">🛒</div>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No products found</h3>
+              <p className="text-gray-500">We couldn't find any products in this category. Please try another category.</p>
             </div>
           )}
         </div>

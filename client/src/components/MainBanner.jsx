@@ -5,28 +5,31 @@ import { Link } from "react-router-dom";
 
 const MainBanner = () => {
   return (
-    <div className="relative w-full">
+    <div className="relative w-full overflow-hidden rounded-2xl shadow-2xl">
       {/* Banner Images */}
-      <img
-        src={mainBanner}
-        alt="Main Banner"
-        className="w-full hidden md:block"
-      />
-      <img src={mainBanner} alt="Mb:Main Banner" className="w-full md:hidden" />
+      <div className="relative">
+        <img
+          src={mainBanner}
+          alt="Main Banner"
+          className="w-full hidden md:block transition-transform duration-700 hover:scale-105"
+        />
+        <img src={mainBanner} alt="Mb:Main Banner" className="w-full md:hidden transition-transform duration-700 hover:scale-105" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
+      </div>
 
       {/* Overlay Content - Centered */}
       <div className="absolute inset-0 flex justify-center items-center px-4 mt-10">
-        <div className="text-center">
+        <div className="text-center animate-in fade-in-50 slide-in-from-bottom-4 duration-1000">
           {/* Buttons Side-by-Side (Oval Style) */}
           <div className="flex flex-wrap justify-center items-center gap-4">
             {/* Shop Now Button */}
             <Link
               to="/products"
-              className="group flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-full transition font-medium hover:bg-green-700 hover:shadow-lg"
+              className="group flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-full transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
             >
-              Shop Now!
+              🛒 Shop Now!
               <img
-                className="w-4 h-4 transition group-hover:translate-x-1"
+                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-2"
                 src={blackArrow}
                 alt="arrow"
               />
@@ -35,11 +38,11 @@ const MainBanner = () => {
             {/* Explore Deals Button — Oval and hidden on small screens */}
             <Link
               to="/products"
-              className="group hidden md:flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-full transition font-medium hover:bg-green-700 hover:shadow-lg"
+              className="group hidden md:flex items-center gap-2 bg-white/90 backdrop-blur-sm text-green-600 hover:text-green-700 px-8 py-3 rounded-full transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 border border-green-200 hover:bg-white"
             >
-              Explore Exclusive Deals
+              ✨ Explore Exclusive Deals
               <img
-                className="w-4 h-4 transition group-hover:translate-x-1"
+                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-2"
                 src={blackArrow}
                 alt="arrow"
               />

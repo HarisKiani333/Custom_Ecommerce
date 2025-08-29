@@ -21,8 +21,8 @@ export const updateCart = async (req, res) => {
 
 export const getCart = async (req, res) => {
   try {
-    // If you're using authUser middleware:
-    const userId = req.body.userId;
+    // Get userId from authUser middleware
+    const userId = req.userId;
 
     if (!userId) {
       return res.status(400).json({

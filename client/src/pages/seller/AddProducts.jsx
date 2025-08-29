@@ -55,18 +55,30 @@ const AddProducts = () => {
     }
   };
   return (
-    <div className="py-10 flex flex-col justify-between bg-white">
-      <form
-        onSubmit={onSubmitHandler}
-        className="md:p-10 p-4 space-y-5 max-w-lg"
-      >
-        <div>
-          <p className="text-base font-medium">Product Image</p>
-          <div className="flex flex-wrap items-center gap-3 mt-2">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 animate-in fade-in-50 duration-700">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-8 animate-in slide-in-from-top-4 duration-500">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-2">
+            📦 Add New Product
+          </h1>
+          <p className="text-gray-600">Create and showcase your amazing products</p>
+        </div>
+        
+        <form
+          onSubmit={onSubmitHandler}
+          className="bg-white rounded-2xl shadow-xl p-8 space-y-8 animate-in zoom-in-95 slide-in-from-bottom-4 duration-700 delay-200"
+        >
+        <div className="animate-in slide-in-from-left-4 duration-500 delay-300">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🖼️</span>
+            <p className="text-lg font-semibold text-gray-800">Product Images</p>
+            <span className="text-sm text-gray-500">(Upload up to 4 images)</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {Array(4)
               .fill("")
               .map((_, index) => (
-                <label key={index} htmlFor={`image${index}`}>
+                <label key={index} htmlFor={`image${index}`} className="group">
                   <input
                     onChange={(e) => {
                       const updatedFiles = [...files];
@@ -76,18 +88,23 @@ const AddProducts = () => {
                     type="file"
                     id={`image${index}`}
                     hidden
+                    accept="image/*"
                   />
                   {files[index] ? (
-                    <img
-                      className="max-w-24 cursor-pointer"
-                      alt="uploadArea"
-                      src={URL.createObjectURL(files[index])}
-                      width={100}
-                      height={100}
-                    />
+                    <div className="relative overflow-hidden rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300">
+                      <img
+                        className="w-full h-32 object-cover cursor-pointer transform group-hover:scale-105 transition-transform duration-300"
+                        alt="Product preview"
+                        src={URL.createObjectURL(files[index])}
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">Change Image</span>
+                      </div>
+                    </div>
                   ) : (
-                    <div className="w-[90px] h-[100px] flex items-center justify-center border rounded cursor-pointer">
-                      <ImageUpIcon size={20} />
+                    <div className="w-full h-32 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 hover:border-green-400 transition-all duration-300 group-hover:shadow-md">
+                      <ImageUpIcon size={24} className="text-gray-400 group-hover:text-green-500 transition-colors duration-300" />
+                      <span className="text-xs text-gray-500 mt-1 group-hover:text-green-600">Upload Image</span>
                     </div>
                   )}
                 </label>
@@ -95,48 +112,54 @@ const AddProducts = () => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-1 max-w-md">
-          <label className="text-base font-medium" htmlFor="product-name">
-            Product Name
-          </label>
+        <div className="animate-in slide-in-from-left-4 duration-500 delay-400">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">🏷️</span>
+            <label className="text-lg font-semibold text-gray-800" htmlFor="product-name">
+              Product Name
+            </label>
+          </div>
           <input
             onChange={(e) => setName(e.target.value)}
             value={name}
             id="product-name"
             type="text"
-            placeholder="Type here"
-            className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+            placeholder="Enter an amazing product name..."
+            className="w-full outline-none py-3 px-4 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm hover:shadow-md"
             required
           />
         </div>
-        <div className="flex flex-col gap-1 max-w-md">
-          <label
-            className="text-base font-medium"
-            htmlFor="product-description"
-          >
-            Product Description
-          </label>
+        <div className="animate-in slide-in-from-left-4 duration-500 delay-500">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">📝</span>
+            <label className="text-lg font-semibold text-gray-800" htmlFor="product-description">
+              Product Description
+            </label>
+          </div>
           <textarea
             onChange={(e) => setDescription(e.target.value)}
             value={description}
             id="product-description"
-            rows={4}
-            className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40 resize-none"
-            placeholder="Type here"
+            rows={5}
+            className="w-full outline-none py-3 px-4 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm hover:shadow-md resize-none"
+            placeholder="Describe your product in detail... What makes it special?"
           ></textarea>
         </div>
-        <div className="w-full flex flex-col gap-1">
-          <label className="text-base font-medium" htmlFor="category">
-            Category
-          </label>
+        <div className="animate-in slide-in-from-left-4 duration-500 delay-600">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">📂</span>
+            <label className="text-lg font-semibold text-gray-800" htmlFor="category">
+              Category
+            </label>
+          </div>
           <select
             onChange={(e) => setCategory(e.target.value)}
             value={category}
             id="category"
-            className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
+            className="w-full outline-none py-3 px-4 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm hover:shadow-md cursor-pointer"
+            required
           >
-            <option value="">Select Category</option>
-
+            <option value="">🎯 Select a category for your product</option>
             {categories.map((item, index) => (
               <option key={index} value={item.path}>
                 {item.path}
@@ -144,43 +167,64 @@ const AddProducts = () => {
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-5 flex-wrap">
-          <div className="flex-1 flex flex-col gap-1 w-32">
-            <label className="text-base font-medium" htmlFor="product-price">
-              Product Price
-            </label>
-            <input
-              onChange={(e) => setPrice(e.target.value)}
-              value={price}
-              id="product-price"
-              type="number"
-              placeholder="0"
-              className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
-              required
-            />
+        <div className="grid md:grid-cols-2 gap-6 animate-in slide-in-from-left-4 duration-500 delay-700">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">💰</span>
+              <label className="text-lg font-semibold text-gray-800" htmlFor="product-price">
+                Product Price
+              </label>
+            </div>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">$</span>
+              <input
+                onChange={(e) => setPrice(e.target.value)}
+                value={price}
+                id="product-price"
+                type="number"
+                placeholder="0.00"
+                className="w-full outline-none py-3 pl-8 pr-4 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm hover:shadow-md"
+                required
+                min="0"
+                step="0.01"
+              />
+            </div>
           </div>
-          <div className="flex-1 flex flex-col gap-1 w-32">
-            <label className="text-base font-medium" htmlFor="offer-price">
-              Offer Price
-            </label>
-            <input
-              onChange={(e) => setOfferPrice(e.target.value)}
-              value={offerPrice}
-              id="offer-price"
-              type="number"
-              placeholder="0"
-              className="outline-none md:py-2.5 py-2 px-3 rounded border border-gray-500/40"
-              required
-            />
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🏷️</span>
+              <label className="text-lg font-semibold text-gray-800" htmlFor="offer-price">
+                Offer Price
+              </label>
+              <span className="text-sm text-green-600 bg-green-100 px-2 py-1 rounded-full">Special Deal</span>
+            </div>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">$</span>
+              <input
+                onChange={(e) => setOfferPrice(e.target.value)}
+                value={offerPrice}
+                id="offer-price"
+                type="number"
+                placeholder="0.00"
+                className="w-full outline-none py-3 pl-8 pr-4 rounded-xl border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-gray-50 focus:bg-white shadow-sm hover:shadow-md"
+                required
+                min="0"
+                step="0.01"
+              />
+            </div>
           </div>
         </div>
-        <button
-          type="submit"
-          className="px-8 py-2.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-full cursor-pointer"
-        >
-          ADD
-        </button>
-      </form>
+        <div className="flex justify-center pt-4 animate-in slide-in-from-bottom-4 duration-500 delay-800">
+          <button
+            type="submit"
+            className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-12 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3 text-lg"
+          >
+            <span className="text-xl">🚀</span>
+            Add Product to Store
+          </button>
+        </div>
+        </form>
+      </div>
     </div>
   );
 };

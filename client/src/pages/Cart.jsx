@@ -11,6 +11,8 @@ const Cart = () => {
   );
   const [paymentOptions, setPaymentOptions] = useState("Cash on Delivery");
   const [showAddressForm, setShowAddressForm] = useState(false);
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [newAddress, setNewAddress] = useState({
     firstName: '',
     lastName: '',
@@ -45,6 +47,7 @@ const Cart = () => {
 
   // Fetch addresses for logged-in user
   const getUserAddress = async () => {
+    setIsLoadingAddress(true);
     try {
       const { data } = await axios.post("/api/address/get");
       if (data.success) {
@@ -58,6 +61,8 @@ const Cart = () => {
     } catch (error) {
       console.error(error);
       toast.error(error.message || "Failed to fetch addresses");
+    } finally {
+      setIsLoadingAddress(false);
     }
   };
 
@@ -119,8 +124,12 @@ const Cart = () => {
   };
 
   const placeOrder = async () => {
+    setIsPlacingOrder(true);
     try {
-      if (!cartArray.length) return toast.error("Cart is empty");
+      if (!cartArray.length) {
+        setIsPlacingOrder(false);
+        return toast.error("Cart is empty");
+      }
 
       let payload = {
         items: cartArray.map((item) => ({
@@ -176,6 +185,8 @@ const Cart = () => {
       }
     } catch (error) {
       toast.error(error.message);
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -188,27 +199,34 @@ const Cart = () => {
   }, [products, cartItems]);
 
   return products.length > 0 && cartItems ? (
-    <div className="flex flex-col md:flex-row mt-20 px-6 md:px-25">
+    <div className="flex flex-col md:flex-row mt-20 px-6 md:px-25 animate-in fade-in-50 slide-in-from-bottom-4 duration-700">
       <div className="flex-1 max-w-4xl">
-        <h1 className="text-3xl font-medium mb-6">
-          Shopping Cart{" "}
-          <span className="text-sm text-indigo-500">
-            {getCartCount()} Items
-          </span>
-        </h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-500 bg-clip-text text-transparent mb-2">
+            🛒 Shopping Cart
+          </h1>
+          <div className="flex items-center gap-3">
+            <div className="w-16 h-1 bg-gradient-to-r from-green-600 to-emerald-500 rounded-full animate-in slide-in-from-left duration-500 delay-300"></div>
+            <span className="text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+              {getCartCount()} Items
+            </span>
+          </div>
+          <p className="text-gray-600 mt-2 text-sm">Review and manage your selected items</p>
+        </div>
 
-        <div className="grid grid-cols-[2fr_1fr_1fr] text-gray-500 text-base font-medium pb-3">
-          <p className="text-left">Product Details</p>
-          <p className="text-center">Subtotal</p>
-          <p className="text-center">Action</p>
+        <div className="grid grid-cols-[2fr_1fr_1fr] text-gray-600 text-base font-semibold pb-4 border-b-2 border-gray-200 mb-4">
+          <p className="text-left flex items-center gap-2">📦 Product Details</p>
+          <p className="text-center flex items-center justify-center gap-2">💰 Subtotal</p>
+          <p className="text-center flex items-center justify-center gap-2">⚡ Action</p>
         </div>
 
         {cartArray.map((product, index) => (
           <div
             key={index}
-            className="grid grid-cols-[2fr_1fr_1fr] text-gray-500 items-center text-sm md:text-base font-medium pt-3"
+            className="grid grid-cols-[2fr_1fr_1fr] text-gray-700 items-center text-sm md:text-base font-medium py-4 border-b border-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-300 rounded-lg px-2 animate-in fade-in-50 slide-in-from-bottom-4"
+            style={{animationDelay: `${index * 100}ms`}}
           >
-            <div className="flex items-center md:gap-6 gap-3">
+            <div className="flex items-center md:gap-6 gap-3 group">
               <div
                 onClick={() => {
                   navigate(
@@ -216,28 +234,30 @@ const Cart = () => {
                   );
                   scrollTo(0, 0);
                 }}
-                className="cursor-pointer w-24 h-24 flex items-center justify-center border border-gray-300 rounded overflow-hidden"
+                className="cursor-pointer w-24 h-24 flex items-center justify-center border-2 border-gray-200 rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 hover:border-green-300 relative"
               >
                 <img
-                  className="max-w-full h-full object-cover"
+                  className="max-w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   src={product.image}
                   alt={product.name}
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <div>
-                <p className="hidden md:block font-semibold">{product.name}</p>
-                <div className="font-normal text-gray-500/70">
-                  <p>
-                    Weight: <span>{product.weight || "N/A"}</span>
-                  </p>
-                  <div className="flex items-center">
-                    <p>Qty:</p>
+              <div className="flex-1">
+                <p className="hidden md:block font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-300 mb-2">{product.name}</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-gray-500">⚖️</span>
+                    <span className="font-medium text-gray-600">Weight: {product.weight || "N/A"}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500 text-sm">📊 Qty:</span>
                     <select
                       value={product.quantity}
                       onChange={(e) =>
                         updateCartItem(product._id, Number(e.target.value))
                       }
-                      className="outline-none"
+                      className="outline-none border border-gray-300 rounded-lg px-2 py-1 text-sm font-medium bg-white hover:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all duration-300"
                     >
                       {Array.from({
                         length: Math.max(9, product.quantity),
@@ -251,25 +271,29 @@ const Cart = () => {
                 </div>
               </div>
             </div>
-            <p className="text-center">
-              {currency}
-              {product.offerPrice * product.quantity}
-            </p>
-            <button
-              onClick={() => removeCartItem(product._id)}
-              className="cursor-pointer mx-auto"
-            >
-              {/* delete icon */}
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path
-                  d="m12.5 7.5-5 5m0-5 5 5m5.833-2.5a8.333 8.333 0 1 1-16.667 0 8.333 8.333 0 0 1 16.667 0"
-                  stroke="#FF532E"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+            <div className="text-center">
+              <p className="font-bold text-lg text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
+                {currency}
+                {product.offerPrice * product.quantity}
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <button
+                onClick={() => removeCartItem(product._id)}
+                className="cursor-pointer p-2 rounded-full hover:bg-red-50 transition-all duration-300 group/btn border border-red-200 hover:border-red-300 shadow-sm hover:shadow-md"
+                title="Remove item"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="group-hover/btn:scale-110 transition-transform duration-300">
+                  <path
+                    d="m12.5 7.5-5 5m0-5 5 5m5.833-2.5a8.333 8.333 0 1 1-16.667 0 8.333 8.333 0 0 1 16.667 0"
+                    stroke="#FF532E"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         ))}
 
@@ -281,8 +305,10 @@ const Cart = () => {
         </button>
       </div>
 
-      <div className="max-w-[360px] w-full bg-gray-100/40 p-5 max-md:mt-16 border border-gray-300/70">
-        <h2 className="text-xl md:text-xl font-medium">Order Summary</h2>
+      <div className="max-w-[360px] w-full bg-gradient-to-br from-white to-gray-50 p-8 max-md:mt-16 border border-gray-200 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 animate-in fade-in-50 slide-in-from-right-4 duration-700 delay-200">
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">📋 Order Summary</h2>
+        </div>
         <hr className="border-gray-300 my-5" />
 
         <div className="mb-6">
@@ -474,46 +500,96 @@ const Cart = () => {
         <hr className="border-gray-300" />
 
         {cartArray.length > 0 && (
-          <div className="text-gray-500 mt-4 space-y-2">
-            <p className="flex justify-between">
-              <span>Price</span>
-              <span>
+          <div className="mt-4 space-y-4">
+            <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+              <span className="font-medium text-gray-700 flex items-center gap-2">💰 Price</span>
+              <span className="font-bold text-lg text-gray-800">
                 {currency}
                 {getCartAmount()}
               </span>
-            </p>
-            <p className="flex justify-between">
-              <span>Shipping Fee</span>
-              <span className="text-green-600">Free</span>
-            </p>
-            <p className="flex justify-between">
-              <span>Tax(2%)</span>
-              <span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+              <span className="font-medium text-gray-700 flex items-center gap-2">🚚 Shipping Fee</span>
+              <span className="font-bold text-lg text-green-600">Free</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
+              <span className="font-medium text-gray-700 flex items-center gap-2">📊 Tax(2%)</span>
+              <span className="font-bold text-lg text-gray-800">
                 {currency}
                 {(getCartAmount() * 0.02).toFixed(2)}
               </span>
-            </p>
-            <p className="flex justify-between text-lg font-medium mt-3">
-              <span>Total Amount:</span>
-              <span>
+            </div>
+            <div className="border-t-2 border-dashed border-gray-300 my-4"></div>
+            <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-md">
+              <span className="font-bold text-xl text-green-800 flex items-center gap-2">🎯 Total Amount:</span>
+              <span className="font-bold text-2xl text-green-600">
                 {currency}
                 {(getCartAmount() * 1.02).toFixed(2)}
               </span>
-            </p>
+            </div>
           </div>
         )}
 
         <button
-          className="w-full py-3 mt-6 cursor-pointer bg-green-500 text-white font-medium hover:bg-green-600 transition"
+          className={`w-full py-4 mt-8 font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 ${
+            isPlacingOrder
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 cursor-pointer"
+          } text-white`}
           onClick={placeOrder}
+          disabled={isPlacingOrder}
         >
-          {paymentOptions === "Cash on Delivery"
-            ? "Place Order"
-            : "Proceed to Pay"}
+          {isPlacingOrder ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Placing Order...
+            </>
+          ) : (
+            <>
+              🚀 {paymentOptions === "Cash on Delivery" ? "Place Order" : "Proceed to Pay"}
+            </>
+          )}
         </button>
       </div>
     </div>
-  ) : null;
+  ) : (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 animate-in fade-in-50 slide-in-from-bottom-4 duration-700">
+      <div className="text-center max-w-md mx-auto">
+        <div className="mb-8 relative">
+          <div className="w-32 h-32 mx-auto bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center shadow-lg animate-in zoom-in-50 duration-500 delay-200">
+            <svg
+              className="h-16 w-16 text-gray-400 animate-pulse"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5-6M20 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0V9a2 2 0 00-2-2H6a2 2 0 00-2-2v4m16 0H4"
+              />
+            </svg>
+          </div>
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-100 rounded-full flex items-center justify-center animate-bounce">
+            <span className="text-red-500 text-xl">😔</span>
+          </div>
+        </div>
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3 animate-in slide-in-from-bottom-4 duration-500 delay-300">
+          🛒 Your cart is empty
+        </h2>
+        <p className="text-gray-600 mb-8 text-lg leading-relaxed animate-in slide-in-from-bottom-4 duration-500 delay-400">
+          Looks like you haven't added any items to your cart yet. Start exploring our amazing products!
+        </p>
+        <button
+          onClick={() => navigate("/products")}
+          className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 mx-auto animate-in slide-in-from-bottom-4 duration-500 delay-500"
+        >
+          🛍️ Continue Shopping
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default Cart;

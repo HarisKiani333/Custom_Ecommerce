@@ -63,14 +63,14 @@ const Navbar = () => {
   }, [searchQuery]);
 
   return (
-    <header className="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+    <header className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 z-50 transition-all duration-300">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo */}
         <a
           href="/"
-          className="text-xl font-bold text-green-600 hover:text-green-700"
+          className="text-xl font-bold text-green-600 hover:text-green-700 transition-all duration-300 hover:scale-105"
         >
-          Husk Store
+          🌿 Husk Store
         </a>
 
         {/* Search Bar - Desktop */}
@@ -82,7 +82,7 @@ const Navbar = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               type="text"
               placeholder="Search Products..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-green-600"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 transition-all duration-200 bg-gray-50 hover:bg-white"
             />
           </div>
         </div>
@@ -93,18 +93,19 @@ const Navbar = () => {
             <a
               key={link.name}
               href={link.path}
-              className="text-gray-700 hover:text-green-600 transition"
+              className="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium relative group"
             >
               {link.name}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
             </a>
           ))}
 
           <button
             onClick={() => navigate("/cart")}
-            className="relative p-2 text-gray-700 hover:text-green-600 transition cursor-pointer"
+            className="relative p-2 text-gray-700 hover:text-green-600 transition-all duration-200 cursor-pointer hover:bg-green-50 rounded-full"
           >
             <ShoppingCart className="w-6 h-6" />
-            <span className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse">
               {getCartCount() > 0 ? getCartCount() : 0}
             </span>
           </button>
@@ -112,7 +113,7 @@ const Navbar = () => {
           {!user ? (
             <button
               onClick={() => setShowUserLogin(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-colors duration-300 cursor-pointer"
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-2 rounded-full transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
             >
               Login
             </button>
@@ -120,26 +121,26 @@ const Navbar = () => {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                className="flex items-center gap-2 p-2 text-gray-700 hover:text-green-600 transition"
+                className="flex items-center gap-2 p-2 text-gray-700 hover:text-green-600 transition-all duration-200 hover:bg-green-50 rounded-full"
               >
                 <User className="w-6 h-6" />
               </button>
 
               {showProfileDropdown && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 backdrop-blur-sm animate-in slide-in-from-top-2 duration-200">
                   <div className="py-2">
                     <a
                       href="/my-orders"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100 transition"
+                      className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition-all duration-200 font-medium"
                       onClick={() => setShowProfileDropdown(false)}
                     >
-                      My Orders
+                      📦 My Orders
                     </a>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 transition cursor-pointer"
+                      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 cursor-pointer font-medium"
                     >
-                      Logout
+                      🚪 Logout
                     </button>
                   </div>
                 </div>
@@ -154,12 +155,12 @@ const Navbar = () => {
           <div>
             <button
               onClick={() => navigate("/cart")}
-              className="relative p-2 text-gray-700 hover:text-green-600 transition cursor-pointer"
+              className="relative p-2 text-gray-700 hover:text-green-600 transition-all duration-200 cursor-pointer hover:bg-green-50 rounded-full"
             >
               <ShoppingCart className="w-6 h-6" />
               <span
                 onClick={() => navigate("/cart")}
-                className="absolute -top-1 -right-1 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
+                className="absolute -top-1 -right-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse"
               >
                 {getCartCount() > 0 ? getCartCount() : 0}
               </span>
@@ -181,7 +182,7 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white px-4 py-4 border-t border-gray-200">
+        <div className="md:hidden bg-white/95 backdrop-blur-md px-4 py-4 border-t border-gray-200 shadow-lg animate-in slide-in-from-top-2 duration-300">
           {/* Mobile Search */}
           <div className="mb-4">
             <div className="relative">
@@ -191,7 +192,7 @@ const Navbar = () => {
                 type="text"
                 value={searchQuery}
                 placeholder="Search Products..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-green-600"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 transition-all duration-200 bg-gray-50 hover:bg-white"
               />
             </div>
           </div>
@@ -200,7 +201,7 @@ const Navbar = () => {
             <a
               key={link.name}
               href={link.path}
-              className="block py-2 text-gray-700 hover:text-green-600"
+              className="block py-3 px-2 text-gray-700 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 font-medium"
               onClick={() => setIsMenuOpen(false)}
             >
               {link.name}
@@ -231,7 +232,7 @@ const Navbar = () => {
                   setIsMenuOpen(false);
                   setShowUserLogin(true);
                 }}
-                className="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition cursor-pointer"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-2 rounded-full transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
               >
                 Login
               </button>
