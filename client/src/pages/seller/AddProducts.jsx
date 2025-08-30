@@ -219,8 +219,7 @@ const AddProducts = () => {
             type="submit"
             className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-4 px-12 rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-3 text-lg"
           >
-            <span className="text-xl">🚀</span>
-            Add Product to Store
+            Add Product 
           </button>
         </div>
         </form>

@@ -249,18 +249,6 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Initialize authentication and data on app load
-  useEffect(() => {
-    const initializeAuth = async () => {
-      await fetchUserStatus();
-      await fetchSeller();
-      if (products.length === 0) {
-        fetchProducts();
-      }
-    };
-    initializeAuth();
-  }, []);
-
   // Fixed cart update logic - removed problematic navigation
   useEffect(() => {
     const updateCart = async () => {

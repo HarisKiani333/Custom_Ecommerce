@@ -307,7 +307,7 @@ const Cart = () => {
 
       <div className="max-w-[360px] w-full bg-gradient-to-br from-white to-gray-50 p-8 max-md:mt-16 border border-gray-200 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 animate-in fade-in-50 slide-in-from-right-4 duration-700 delay-200">
         <div className="flex items-center gap-3 mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">📋 Order Summary</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"> Order Summary</h2>
         </div>
         <hr className="border-gray-300 my-5" />
 
@@ -546,7 +546,7 @@ const Cart = () => {
             </>
           ) : (
             <>
-              🚀 {paymentOptions === "Cash on Delivery" ? "Place Order" : "Proceed to Pay"}
+              {paymentOptions === "Cash on Delivery" ? "Place Order" : "Proceed to Pay"}
             </>
           )}
         </button>

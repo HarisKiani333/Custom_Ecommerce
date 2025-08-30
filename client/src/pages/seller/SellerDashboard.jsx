@@ -6,14 +6,13 @@ import toast from "react-hot-toast";
 
 const SellerDashboard = () => {
   const sidebarLinks = [
-    { name: "Add Product", path: "/seller/add-product", icon: <PackagePlus />, emoji: "📦" },
+    { name: "Add Product", path: "/seller/add-product", icon: <PackagePlus /> },
     {
       name: "Product List",
       path: "/seller/product-list",
       icon: <PackageSearch />,
-      emoji: "📋"
     },
-    { name: "Order List", path: "/seller/order-list", icon: <PackageCheck />, emoji: "✅" },
+    { name: "Order List", path: "/seller/order-list", icon: <PackageCheck />},
   ];
 
   const { navigate, axios, setIsSeller } = useAppContext();
@@ -49,7 +48,7 @@ const handleLogout = async () => {
             <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-md">
               <span className="text-white text-sm font-bold">👨‍💼</span>
             </div>
-            <p className="font-medium text-gray-700">Hi! Admin</p>
+            <p className="font-medium text-gray-700">Admin</p>
           </div>
           <button
             onClick={() => {
@@ -57,7 +56,7 @@ const handleLogout = async () => {
             }}
             className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2.5 rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-300 cursor-pointer font-medium shadow-lg hover:shadow-xl transform hover:scale-105 animate-in slide-in-from-right-4 duration-500 delay-300"
           >
-            🚪 Logout
+            Logout ⏻
           </button>
         </div>
       </div>
@@ -66,9 +65,8 @@ const handleLogout = async () => {
         <div className="md:w-64 w-16 border-r border-gray-200 bg-white shadow-lg text-base pt-6 flex flex-col transition-all duration-300 animate-in slide-in-from-left-4 duration-700 delay-100">
           <div className="px-4 mb-6 animate-in fade-in-50 duration-500 delay-400">
             <h3 className="text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent md:block hidden">
-              🏪 Seller Panel
+               Seller Panel
             </h3>
-            <p className="text-sm text-gray-500 md:block hidden">Manage your store</p>
           </div>
           
           {sidebarLinks.map((item, index) => (
