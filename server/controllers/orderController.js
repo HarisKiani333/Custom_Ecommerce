@@ -3,6 +3,7 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Stripe from "stripe";
+import { scheduleRatingReminder } from "../services/notificationService.js";
 export const placeOrderOnline = async (req, res) => {
   try {
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -232,17 +233,36 @@ export const updateOrderStatus = async (req, res) => {
       });
     }
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      { status },
-      { new: true }
-    );
+    // Get the order with populated items and user info before updating
+    const orderBeforeUpdate = await Order.findById(orderId)
+      .populate('items.product', 'name')
+      .populate('userId', 'name email');
 
-    if (!updatedOrder) {
+    if (!orderBeforeUpdate) {
       return res.json({
         success: false,
         message: "Order not found",
       });
+    }
+
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    ).populate('items.product', 'name')
+     .populate('userId', 'name email');
+
+    // Send rating reminder notification if order is delivered/completed and paid
+    if ((status === 'Delivered' || status === 'Completed') && 
+        updatedOrder.isPaid && 
+        updatedOrder.userId) {
+      try {
+        await scheduleRatingReminder(updatedOrder, updatedOrder.userId);
+        console.log(`Rating reminder sent for order ${orderId}`);
+      } catch (notificationError) {
+        console.error('Failed to send rating reminder:', notificationError);
+        // Don't fail the order update if notification fails
+      }
     }
 
     return res.json({
@@ -325,37 +345,73 @@ export const placeOrderGuest = async (req, res) => {
 export const stripeWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   let event;
 
   try {
-    event = Stripe.webhook.constructEvent(req.body, sig, endpointSecret);
+    event = stripeInstance.webhooks.constructEvent(req.body, sig, endpointSecret);
   } catch (err) {
     console.log(`Webhook signature verification failed.`, err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  console.log(`Received webhook event: ${event.type}`);
+
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
+      console.log('Checkout session completed:', session.id);
       
       // Update order payment status
-      if (session.metadata.orderId) {
+      if (session.metadata && session.metadata.orderId) {
         try {
-          await Order.findByIdAndUpdate(
+          const updatedOrder = await Order.findByIdAndUpdate(
             session.metadata.orderId,
             { isPaid: true },
             { new: true }
           );
-          console.log(`Payment successful for order: ${session.metadata.orderId}`);
+          
+          if (updatedOrder) {
+            console.log(`✅ Payment successful for order: ${session.metadata.orderId}`);
+            console.log(`Order status updated: isPaid = ${updatedOrder.isPaid}`);
+          } else {
+            console.error(`❌ Order not found: ${session.metadata.orderId}`);
+          }
         } catch (error) {
-          console.error('Error updating order payment status:', error);
+          console.error('❌ Error updating order payment status:', error);
+        }
+      } else {
+        console.error('❌ No orderId found in session metadata');
+      }
+      break;
+      
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log('Payment intent succeeded:', paymentIntent.id);
+      
+      // Additional handling for payment_intent.succeeded if needed
+      // This provides an extra layer of confirmation
+      if (paymentIntent.metadata && paymentIntent.metadata.orderId) {
+        try {
+          const updatedOrder = await Order.findByIdAndUpdate(
+            paymentIntent.metadata.orderId,
+            { isPaid: true },
+            { new: true }
+          );
+          
+          if (updatedOrder) {
+            console.log(`✅ Payment intent confirmed for order: ${paymentIntent.metadata.orderId}`);
+          }
+        } catch (error) {
+          console.error('❌ Error updating order from payment intent:', error);
         }
       }
       break;
+      
     default:
-      console.log(`Unhandled event type ${event.type}`);
+      console.log(`Unhandled event type: ${event.type}`);
   }
 
   res.json({ received: true });

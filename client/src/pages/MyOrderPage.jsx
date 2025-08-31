@@ -1,28 +1,209 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, memo } from "react";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
+import RatingModal from "../components/RatingModal";
+import OrderRatingModal from "../components/OrderRatingModal";
+import OrderRatingDisplay from "../components/OrderRatingDisplay";
+import axios from "axios";
 
-export const calculateOrderAmount = (items) => {
-  return items.reduce((total, item) => {
-    const price = item.product.offerPrice || item.product.price || 0;
-    return total + price * item.quantity;
-  }, 0);
-};
+
+
+// Memoized Order Item Component to prevent unnecessary re-renders
+const OrderItem = memo(({ 
+  order, 
+  currency, 
+  userRatings, 
+  orderRatings, 
+  canRateProduct, 
+  handleRateProduct, 
+  handleOrderRateClick 
+}) => {
+  const [canRateOrderState, setCanRateOrderState] = useState(false);
+  
+  // Check if order can be rated (memoized)
+  const checkCanRateOrder = useCallback(async () => {
+    if ((order.status === "Delivered" || order.status === "Completed") && order.isPaid) {
+      try {
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/order-rating/can-rate/${order._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setCanRateOrderState(data.success && data.canRate);
+      } catch (error) {
+        setCanRateOrderState(false);
+      }
+    }
+  }, [order._id, order.status, order.isPaid]);
+  
+  useEffect(() => {
+    checkCanRateOrder();
+  }, [checkCanRateOrder]);
+  
+  return (
+    <div className="border border-gray-300 p-4 rounded-lg mb-4 bg-white shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+        <div className="flex items-center gap-2 mb-2 md:mb-0">
+          <p className="text-sm text-gray-600">Order ID:</p>
+          <p className="font-medium text-gray-800">{order._id}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          <p className="text-sm font-medium text-green-600">{order.status}</p>
+        </div>
+      </div>
+      
+      <div className="space-y-3">
+        {order.items.map((item, index) => (
+          <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+            <img
+              className="w-16 h-16 object-cover rounded-md"
+              src={item.product.image[0]}
+              alt={item.product.name}
+            />
+            <div className="flex-1">
+              <p className="font-medium text-gray-800">{item.product.name}</p>
+              <div className="flex items-center gap-4 mt-1">
+                <p className="text-sm text-gray-600">
+                  {currency}{item.product.price} x {item.quantity}
+                </p>
+                <p className="text-sm font-medium text-gray-800">
+                  Size: {item.size}
+                </p>
+              </div>
+            </div>
+            
+            {/* Product Rating Section */}
+            <div className="flex flex-col items-end gap-2">
+              {userRatings[item.product._id] ? (
+                <div className="text-right">
+                  <p className="text-xs text-gray-500 mb-1">Your Rating</p>
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span
+                        key={star}
+                        className={`text-sm ${
+                          star <= userRatings[item.product._id].rating
+                            ? "text-yellow-400"
+                            : "text-gray-300"
+                        }`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                canRateProduct(item.product._id) && 
+                (order.status === "Delivered" || order.status === "Completed") && 
+                order.isPaid && (
+                  <button
+                    type="button"
+                    onClick={() => handleRateProduct(item.product, order._id)}
+                    className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  >
+                    Rate Product
+                  </button>
+                )
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-gray-600 mb-1">Delivery Address:</p>
+            <p className="text-gray-800">
+              {order.address.firstName} {order.address.lastName}<br />
+              {order.address.street}, {order.address.city}<br />
+              {order.address.state}, {order.address.zipcode}<br />
+              {order.address.country}
+            </p>
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Total Amount:</span>
+              <span className="font-medium">{currency}{order.amount}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Payment:</span>
+              <span className={`font-medium ${
+                order.isPaid ? "text-green-600" : "text-red-600"
+              }`}>
+                {order.paymentType} - {order.isPaid ? "Paid" : "Pending"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Date:</span>
+              <span className="text-gray-800">
+                {new Date(order.date).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Order Rating Section */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Order Experience</h4>
+          {orderRatings[order._id] ? (
+            <OrderRatingDisplay rating={orderRatings[order._id]} />
+          ) : (
+            canRateOrderState && (
+              <button
+                type="button"
+                onClick={() => handleOrderRateClick(order)}
+                className="px-4 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+              >
+                Rate Order Experience
+              </button>
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+OrderItem.displayName = 'OrderItem';
 
 const MyOrderPage = () => {
   const [myOrders, setMyOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { currency, axios, user, loadingUser } = useAppContext();
+  const [ratingModal, setRatingModal] = useState({ isOpen: false, product: null, orderId: null });
+  const [orderRatingModal, setOrderRatingModal] = useState({ isOpen: false, order: null });
+  const [userRatings, setUserRatings] = useState({});
+  const [orderRatings, setOrderRatings] = useState({});
+  const { currency, axios: appAxios, user, loadingUser } = useAppContext();
+  const pollingIntervalRef = useRef(null);
+  const lastFetchTimeRef = useRef(0);
 
-  const fetchMyOrders = async () => {
+  const fetchMyOrders = useCallback(async (skipRatings = false) => {
     try {
+      const now = Date.now();
+      // Prevent rapid successive calls
+      if (now - lastFetchTimeRef.current < 1000) return;
+      lastFetchTimeRef.current = now;
+      
       setLoading(true);
-      const { data } = await axios.get("/api/order/user", {
+      const { data } = await appAxios.get("/api/order/user", {
         withCredentials: true,
       });
 
       if (data.success) {
-        setMyOrders(data.orders);
+        setMyOrders(prevOrders => {
+          // Only update if orders actually changed
+          const ordersChanged = JSON.stringify(prevOrders) !== JSON.stringify(data.orders);
+          if (ordersChanged && !skipRatings) {
+            // Fetch user ratings for all products in orders
+            fetchUserRatings(data.orders);
+          }
+          return data.orders;
+        });
       } else {
         toast.error(data.message);
       }
@@ -36,18 +217,160 @@ const MyOrderPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [appAxios]);
+
+  const fetchUserRatings = useCallback(async (orders) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const productIds = new Set();
+      orders.forEach(order => {
+        order.items.forEach(item => {
+          productIds.add(item.product._id);
+        });
+      });
+
+      // Only fetch ratings for products we don't already have
+      const newProductIds = Array.from(productIds).filter(id => !(id in userRatings));
+      if (newProductIds.length === 0) return;
+
+      const ratingsPromises = newProductIds.map(async (productId) => {
+        try {
+          const response = await axios.get(
+            `${import.meta.env.VITE_BACKEND_URL}/api/rating/user/${productId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          return { productId, rating: response.data.rating };
+        } catch (error) {
+          return { productId, rating: null };
+        }
+      });
+
+      const ratingsResults = await Promise.all(ratingsPromises);
+      const newRatingsMap = {};
+      ratingsResults.forEach(({ productId, rating }) => {
+        newRatingsMap[productId] = rating;
+      });
+      
+      // Merge with existing ratings instead of replacing
+      setUserRatings(prev => ({ ...prev, ...newRatingsMap }));
+    } catch (error) {
+      console.error("Error fetching user ratings:", error);
+    }
+  }, [userRatings]);
+
+  const handleRateProduct = useCallback((product, orderId) => {
+    setRatingModal({
+      isOpen: true,
+      product,
+      orderId,
+    });
+  }, []);
+
+  const handleRatingSubmitted = useCallback((newRating) => {
+    // Update the userRatings state
+    setUserRatings(prev => ({
+      ...prev,
+      [newRating.productId]: newRating
+    }));
+    toast.success("Thank you for your rating!");
+  }, []);
+
+  const handleOrderRateClick = useCallback((order) => {
+    setOrderRatingModal({ isOpen: true, order });
+  }, []);
+
+  const handleOrderRatingSubmitted = useCallback((newOrderRating) => {
+    // Update specific order rating instead of refetching all
+    if (newOrderRating) {
+      setOrderRatings(prev => ({
+        ...prev,
+        [newOrderRating.orderId]: newOrderRating
+      }));
+    }
+    // Close the modal
+    setOrderRatingModal({ isOpen: false, order: null });
+    toast.success("Thank you for rating your order experience!");
+  }, []);
+
+  const fetchOrderRatings = useCallback(async () => {
+    try {
+      const { data } = await appAxios.get("/api/order-rating/user");
+      if (data.success) {
+        const ratingsMap = {};
+        data.orderRatings.forEach(rating => {
+          ratingsMap[rating.orderId] = rating;
+        });
+        setOrderRatings(ratingsMap);
+      }
+    } catch (error) {
+      console.error("Error fetching order ratings:", error);
+    }
+  }, [appAxios]);
+
+  const canRateOrder = useCallback(async (orderId) => {
+    try {
+      const { data } = await appAxios.get(`/api/order-rating/can-rate/${orderId}`);
+      return data.success && data.canRate;
+    } catch (error) {
+      return false;
+    }
+  }, [appAxios]);
+
+  const canRateProduct = useCallback((productId) => {
+    return !userRatings[productId];
+  }, [userRatings]);
+
+  // Memoize expensive computations
+  const hasPendingPayments = useMemo(() => {
+    return myOrders.some(order => 
+      order.paymentType === "Online" && !order.isPaid
+    );
+  }, [myOrders]);
+
+  // Optimized polling setup
+  const setupPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
+    
+    if (hasPendingPayments && user) {
+      pollingIntervalRef.current = setInterval(() => {
+        fetchMyOrders(true); // Skip ratings refetch during polling
+      }, 10000);
+    }
+  }, [hasPendingPayments, user, fetchMyOrders]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!loadingUser) {
       if (user) {
         fetchMyOrders();
+        fetchOrderRatings();
       } else {
         setLoading(false);
         toast.error("Please log in to view your orders");
       }
     }
-  }, [user, loadingUser]);
+  }, [user, loadingUser, fetchMyOrders, fetchOrderRatings]);
+
+  // Setup optimized polling
+  useEffect(() => {
+    setupPolling();
+  }, [setupPolling]);
 
   // Show loading while checking authentication
   if (loadingUser || loading) {
@@ -117,82 +440,40 @@ const MyOrderPage = () => {
           </div>
         ) : (
           myOrders.map((order, index) => (
-          <div
-            key={index}
-            className="flex flex-col md:grid md:grid-cols-[2fr_1fr_1fr_1fr] md:items-center gap-5 p-6 max-w-4xl rounded-xl border border-gray-200 text-gray-700 bg-gradient-to-r from-white to-gray-50 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-in fade-in-50 slide-in-from-bottom-4"
-            style={{animationDelay: `${index * 100}ms`}}
-          >
-            <div className="flex gap-5">
-              {order.items.map((item, index) => (
-                <div key={index} className="flex gap-4 items-center group">
-                  <div className="relative overflow-hidden rounded-lg">
-                    <img
-                      src={item.product.image[0]}
-                      alt={item.product.name}
-                      className="w-14 h-14 object-cover transition-transform duration-300 group-hover:scale-110 shadow-md"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800 group-hover:text-green-600 transition-colors duration-300">
-                      {item.product.name}
-                    </p>
-                    <span
-                      className={`text-emerald-600 font-medium text-sm ${
-                        item.quantity < 2 ? "hidden" : ""
-                      }`}
-                    >
-                      ✕ {item.quantity}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-sm bg-gray-50 p-3 rounded-lg border-l-4 border-green-500">
-              <p className="font-semibold mb-2 text-gray-800 flex items-center">
-                📍 {order.address.firstName} {order.address.lastName}
-              </p>
-              <p className="text-gray-600 leading-relaxed">
-                {order.address.street}, {order.address.city},{" "}
-                {order.address.state}, {order.address.zipcode},{" "}
-                {order.address.country}
-              </p>
-            </div>
-
-            <div className="text-center">
-              <p className="text-sm text-gray-500 mb-1">💰 Total Amount</p>
-              <p className="font-bold text-lg text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200">
-                {currency}
-                {calculateOrderAmount(order.items).toFixed(2)}
-              </p>
-            </div>
-
-            <div className="flex flex-col text-sm space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">💳</span>
-                <span className="font-medium">{order.paymentType}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-gray-500">📅</span>
-                <span className="font-medium">{order.orderDate}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  order.isPaid 
-                    ? "bg-green-100 text-green-800" 
-                    : "bg-yellow-100 text-yellow-800"
-                }`}>
-                  {order.isPaid ? "✅ Paid" : "⏳ Pending"}
-                </span>
-              </div>
-            </div>
-          </div>
+            <OrderItem
+              key={order._id || index}
+              order={order}
+              currency={currency}
+              userRatings={userRatings}
+              orderRatings={orderRatings}
+              canRateProduct={canRateProduct}
+              handleRateProduct={handleRateProduct}
+              handleOrderRateClick={handleOrderRateClick}
+            />
           ))
         )}
-      </div>
-    </div>
-  );
-};
+       </div>
+       
+       {/* Rating Modal */}
+       <RatingModal
+         isOpen={ratingModal.isOpen}
+         onClose={() => setRatingModal({ isOpen: false, product: null, orderId: null })}
+         productId={ratingModal.product?._id}
+         orderId={ratingModal.orderId}
+         productName={ratingModal.product?.name}
+         productImage={ratingModal.product?.image?.[0]}
+         onRatingSubmitted={handleRatingSubmitted}
+       />
+       
+       {/* Order Rating Modal */}
+       <OrderRatingModal
+         isOpen={orderRatingModal.isOpen}
+         onClose={() => setOrderRatingModal({ isOpen: false, order: null })}
+         order={orderRatingModal.order}
+         onRatingSubmitted={handleOrderRatingSubmitted}
+       />
+     </div>
+   );
+ };
 
 export default MyOrderPage;

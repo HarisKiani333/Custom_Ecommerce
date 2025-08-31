@@ -31,8 +31,8 @@ function App() {
         {/* Show login modal */}
         {showUserLogin && <Login />}
         
-        {/* Show navbar only if not on seller routes */}
-        {!location.pathname.startsWith("/seller") && <Navbar />}
+        {/* Show navbar only if not on seller or admin routes */}
+        {!location.pathname.startsWith("/seller") && !location.pathname.startsWith("/admin") && <Navbar />}
         
         <main className="flex-grow">
           <Routes>
@@ -77,10 +77,11 @@ function App() {
             <Route path="product-list" element={<ProductsList />} />
             <Route path="order-list" element={<OrdersList />} />
           </Route>
+          
           </Routes>
         </main>
         
-        {/* Show footer only if not on seller routes */}
+        {/* Show footer only if not on seller or admin routes */}
         {!location.pathname.startsWith("/seller") && <Footer />}
         
         <BackToTop />

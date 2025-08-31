@@ -10,6 +10,8 @@ import productRouter from "./routes/productRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 import addressRouter from "./routes/addressRoute.js";
 import orderRouter from "./routes/orderRoute.js";
+import ratingRouter from "./routes/ratingRoute.js";
+import orderRatingRouter from "./routes/orderRatingRoute.js";
 
 // Load environment variables before using them
 dotenv.config();
@@ -20,6 +22,9 @@ const port = process.env.PORT || 4000;
 // Connect to MongoDB
 await connectDb().catch((err) => console.log(err));
 await connectCloudinary().catch((err) => console.log(err));
+
+// Stripe webhook route MUST be before express.json() middleware
+app.use("/api/order/stripe-webhook", express.raw({type: 'application/json'}));
 
 // 🔴 CRITICAL: Add these missing middleware lines
 app.use(express.json()); // Parse JSON request bodies
@@ -57,6 +62,8 @@ app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/address", addressRouter);
 app.use("/api/order", orderRouter);
+app.use("/api/rating", ratingRouter);
+app.use("/api/order-rating", orderRatingRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

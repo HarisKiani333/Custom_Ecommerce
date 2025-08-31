@@ -3,6 +3,7 @@ import { useAppContext } from "../context/AppContext";
 import { useParams, Link } from "react-router-dom";
 import StarRating from "../components/StarRating";
 import ProductCard from "../components/ProductCard";
+import RatingDisplay from "../components/RatingDisplay";
 
 const ProductDetails = () => {
   const { products, navigate, currency, addCartItem, loadingUser } = useAppContext();
@@ -10,7 +11,7 @@ const ProductDetails = () => {
 
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [thumbnail, setThumbnail] = useState(null);
-
+``
   const product = products.find((p) => p._id === id);
 
   // Show loading state while products are being fetched or product not found
@@ -156,6 +157,17 @@ const ProductDetails = () => {
                 Buy now
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Product Ratings & Reviews Section */}
+        <div className="mt-16">
+          <div className="flex flex-col items-center mb-8">
+            <h2 className="text-3xl font-medium text-gray-800">Ratings & Reviews</h2>
+            <div className="w-20 h-0.5 bg-green-400 rounded-full mt-2"></div>
+          </div>
+          <div className="max-w-4xl mx-auto">
+            <RatingDisplay productId={product._id} showReviews={true} maxReviews={10} />
           </div>
         </div>
 

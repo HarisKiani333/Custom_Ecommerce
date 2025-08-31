@@ -21,7 +21,7 @@ orderRouter.put("/update-status", authSeller, updateOrderStatus);
 orderRouter.put("/update-payment", authSeller, updatePaymentStatus);
 orderRouter.post("/guest", placeOrderGuest);
 orderRouter.post("/online", authUser, placeOrderOnline);
-// Add webhook route (must be before express.json() middleware)
-orderRouter.post("/stripe-webhook", express.raw({type: 'application/json'}), stripeWebhook);
+// Stripe webhook route (raw middleware handled in server.js)
+orderRouter.post("/stripe-webhook", stripeWebhook);
 
 export default orderRouter;

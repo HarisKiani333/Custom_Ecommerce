@@ -1,6 +1,7 @@
 // to add products in database <--> shown in productList on frontend
 //path /api/product/add
 import Product from "../models/Product.js";
+import Rating from "../models/Rating.js";
 import { v2 } from "cloudinary"; // Import v2 directly since we only use v2
 
 export const addProduct = async (req, res) => {
@@ -47,7 +48,36 @@ export const productList = async (req, res) => {
       return res.json({ success: true, products: [], message: "No products found" });
     }
     
-    res.json({ success: true, products });
+    // Get rating statistics for all products
+    const productIds = products.map(product => product._id);
+    const ratingStats = await Rating.aggregate([
+      { $match: { productId: { $in: productIds } } },
+      {
+        $group: {
+          _id: "$productId",
+          averageRating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    // Create a map for quick lookup
+    const ratingsMap = {};
+    ratingStats.forEach(stat => {
+      ratingsMap[stat._id.toString()] = {
+        rating: Math.round(stat.averageRating * 10) / 10,
+        totalRatings: stat.totalRatings
+      };
+    });
+    
+    // Add rating data to products
+    const productsWithRatings = products.map(product => ({
+      ...product.toObject(),
+      rating: ratingsMap[product._id.toString()]?.rating || 0,
+      totalRatings: ratingsMap[product._id.toString()]?.totalRatings || 0
+    }));
+    
+    res.json({ success: true, products: productsWithRatings });
   } catch (error) {
     console.error('Product list error:', error);
     res.json({ success: false, message: "Failed to fetch products" });
@@ -63,7 +93,26 @@ export const productDetailByID = async (req, res) => {
     if (!product) {
       return res.json({ success: false, message: "Product not found" });
     }
-    res.json({ success: true, product });
+    
+    // Get rating statistics for this product
+    const ratingStats = await Rating.aggregate([
+      { $match: { productId: product._id } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          totalRatings: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    const productWithRating = {
+      ...product.toObject(),
+      rating: ratingStats[0]?.averageRating ? Math.round(ratingStats[0].averageRating * 10) / 10 : 0,
+      totalRatings: ratingStats[0]?.totalRatings || 0
+    };
+    
+    res.json({ success: true, product: productWithRating });
   } catch (error) {
     res.json({ success: false, message: "Product not found" });
     console.log(error);
