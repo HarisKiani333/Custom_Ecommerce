@@ -6,12 +6,13 @@ import ProductCard from "../components/ProductCard";
 import RatingDisplay from "../components/RatingDisplay";
 
 const ProductDetails = () => {
-  const { products, navigate, currency, addCartItem, loadingUser } = useAppContext();
+  const { products, navigate, currency, addCartItem, loadingUser } =
+    useAppContext();
   const { category, id } = useParams();
 
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [thumbnail, setThumbnail] = useState(null);
-``
+  ``;
   const product = products.find((p) => p._id === id);
 
   // Show loading state while products are being fetched or product not found
@@ -33,10 +34,14 @@ const ProductDetails = () => {
     return (
       <div className="mt-16 px-4 pb-28 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-medium text-gray-800 mb-2">Product Not Found</h2>
-          <p className="text-gray-600 mb-4">The product you're looking for doesn't exist.</p>
+          <h2 className="text-2xl font-medium text-gray-800 mb-2">
+            Product Not Found
+          </h2>
+          <p className="text-gray-600 mb-4">
+            The product you're looking for doesn't exist.
+          </p>
           <button
-            onClick={() => navigate('/products')}
+            onClick={() => navigate("/products")}
             className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition"
           >
             Browse Products
@@ -123,12 +128,12 @@ const ProductDetails = () => {
 
             <div className="mt-6">
               <p className="text-gray-500/70 line-through">
-                MRP: {currency}
-                {product.offerPrice}
+                {currency}
+                {product.price}
               </p>
               <p className="text-2xl font-medium">
-                MRP: {currency}
-                {product.price}
+                {currency}
+                {product.offerPrice} 
               </p>
               <span className="text-gray-500/70">(inclusive of all taxes)</span>
             </div>
@@ -163,11 +168,17 @@ const ProductDetails = () => {
         {/* Product Ratings & Reviews Section */}
         <div className="mt-16">
           <div className="flex flex-col items-center mb-8">
-            <h2 className="text-3xl font-medium text-gray-800">Ratings & Reviews</h2>
+            <h2 className="text-3xl font-medium text-gray-800">
+              Ratings & Reviews
+            </h2>
             <div className="w-20 h-0.5 bg-green-400 rounded-full mt-2"></div>
           </div>
           <div className="max-w-4xl mx-auto">
-            <RatingDisplay productId={product._id} showReviews={true} maxReviews={10} />
+            <RatingDisplay
+              productId={product._id}
+              showReviews={true}
+              maxReviews={10}
+            />
           </div>
         </div>
 

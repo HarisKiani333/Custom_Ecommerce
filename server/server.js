@@ -12,6 +12,8 @@ import addressRouter from "./routes/addressRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import ratingRouter from "./routes/ratingRoute.js";
 import orderRatingRouter from "./routes/orderRatingRoute.js";
+import contactRouter from "./routes/contactRoute.js";
+import { logApiRequest } from "./utils/errorLogger.js";
 
 // Load environment variables before using them
 dotenv.config();
@@ -29,6 +31,11 @@ app.use("/api/order/stripe-webhook", express.raw({type: 'application/json'}));
 // 🔴 CRITICAL: Add these missing middleware lines
 app.use(express.json()); // Parse JSON request bodies
 app.use(cookieParser()); // Parse cookies from requests
+
+// Add API request logging middleware
+if (process.env.NODE_ENV !== 'test') {
+  app.use(logApiRequest);
+}
 
 // Enhanced CORS configuration
 const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
@@ -64,6 +71,7 @@ app.use("/api/address", addressRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/rating", ratingRouter);
 app.use("/api/order-rating", orderRatingRouter);
+app.use("/api/contact", contactRouter);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

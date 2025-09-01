@@ -58,19 +58,13 @@ const RatingModal = ({
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/api/rating/create`,
+        "/api/rating/create",
         {
           productId,
           orderId,
           rating,
           review: review.trim(),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
 

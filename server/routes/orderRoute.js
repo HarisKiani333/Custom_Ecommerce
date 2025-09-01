@@ -8,6 +8,7 @@ import {
   placeOrderGuest,
   placeOrderOnline,
   stripeWebhook,
+  deleteOrder,
 } from "../controllers/orderController.js";
 import { authUser } from "../middleware/authUser.js";
 import authSeller from "../middleware/authSeller.js";
@@ -23,5 +24,7 @@ orderRouter.post("/guest", placeOrderGuest);
 orderRouter.post("/online", authUser, placeOrderOnline);
 // Stripe webhook route (raw middleware handled in server.js)
 orderRouter.post("/stripe-webhook", stripeWebhook);
+// Delete order route (seller only)
+orderRouter.delete("/delete/:orderId", authSeller, deleteOrder);
 
 export default orderRouter;

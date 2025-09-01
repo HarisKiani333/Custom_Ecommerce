@@ -19,6 +19,8 @@ import ProductsList from "./pages/seller/ProductsList";
 import OrdersList from "./pages/seller/OrdersList";
 import Loader from "./pages/Loader";
 import UniversalLoader from "./components/UniversalLoader";
+import { ContactPage } from "./pages/ContactPage";
+import { AboutPage } from "./pages/AboutPage";
 
 function App() {
   const { showUserLogin, user, isSeller } = useAppContext();
@@ -42,8 +44,8 @@ function App() {
           <Route path="/products/:category" element={<ProductCategory />} />
           <Route path="/products/:category/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
-          <Route path="/contacts" element={<div>Contact Page</div>} />
-          <Route path="/about" element={<div>About Page</div>} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/about" element={<AboutPage />} />
           
           {/* Protected User Routes */}
           <Route

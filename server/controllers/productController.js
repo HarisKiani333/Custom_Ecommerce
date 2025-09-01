@@ -2,6 +2,7 @@
 //path /api/product/add
 import Product from "../models/Product.js";
 import Rating from "../models/Rating.js";
+import User from "../models/User.js";
 import { v2 } from "cloudinary"; // Import v2 directly since we only use v2
 
 export const addProduct = async (req, res) => {
@@ -16,6 +17,12 @@ export const addProduct = async (req, res) => {
       return res.json({ success: false, message: "No images provided" });
     }
     
+    // Get the admin user (seller) ID
+    const adminUser = await User.findOne({ email: process.env.ADMIN_EMAIL });
+    if (!adminUser) {
+      return res.json({ success: false, message: "Seller not found. Please contact administrator." });
+    }
+    
     let imagesUrl = await Promise.all(
       images.map(async (image) => {
         const result = await v2.uploader.upload(image.path, {
@@ -28,12 +35,40 @@ export const addProduct = async (req, res) => {
     const newProduct = await Product.create({
       ...productData,
       image: imagesUrl,
+      sellerId: adminUser._id, // Add sellerId to the product
     });
     
     console.log('Product created successfully:', newProduct._id);
     res.json({ success: true, message: "Product added successfully" });
   } catch (error) {
     console.error('Product addition error:', error);
+    
+    // Handle MongoDB unique constraint violations
+    if (error.code === 11000) {
+      // Check if it's the composite unique constraint on sellerId + name
+      if (error.keyPattern && error.keyPattern.sellerId && error.keyPattern.name) {
+        return res.json({ 
+          success: false, 
+          message: "A product with this name already exists in your inventory. Please use a different product name.",
+          constraintViolation: "product_name"
+        });
+      }
+      return res.json({ 
+        success: false, 
+        message: "A product with this information already exists.",
+        constraintViolation: "duplicate"
+      });
+    }
+    
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.json({ 
+        success: false, 
+        message: `Validation failed: ${validationErrors.join(', ')}`
+      });
+    }
+    
     res.json({ success: false, message: error.message || "Product not added" });
   }
 };

@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import JWT from "jsonwebtoken";
+import { logError, logSuccess, sendErrorResponse, sendSuccessResponse } from "../utils/errorLogger.js";
 
 // 🔴 CRITICAL: Define standardized cookie options at the top
 const setCookieOptions = {
@@ -40,7 +41,34 @@ export const register = async (req, res) => {
       user: { email: user.email, name: user.name, id: user._id },
     });
   } catch (error) {
-    return res.json({ success: false, message: error.message });
+    // Handle MongoDB unique constraint violations
+    if (error.code === 11000) {
+      // Duplicate key error
+      if (error.keyPattern && error.keyPattern.email) {
+        return res.json({ 
+          success: false, 
+          message: "Email address is already registered. Please use a different email or try logging in.",
+          constraintViolation: "email"
+        });
+      }
+      return res.json({ 
+        success: false, 
+        message: "A user with this information already exists.",
+        constraintViolation: "duplicate"
+      });
+    }
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(err => err.message);
+      return res.json({ 
+        success: false, 
+        message: validationErrors.join('. '),
+        constraintViolation: "validation"
+      });
+    }
+    
+    return sendErrorResponse(res, error, 500, { context: 'user_registration', email });
   }
 };
 
@@ -71,7 +99,7 @@ export const login = async (req, res) => {
       user: { email: user.email, name: user.name, id: user._id },
     });
   } catch (error) {
-    return res.json({ success: false, message: error.message });
+    return sendErrorResponse(res, error, 500, { context: 'user_login', email });
   }
 };
 
@@ -82,7 +110,7 @@ export const logout = async (req, res) => {
     res.clearCookie("token", setCookieOptions);
     return res.json({ success: true, message: "User Logged Out" });
   } catch (error) {
-    return res.json({ success: false, message: error.message });
+    return sendErrorResponse(res, error, 500, { context: 'user_logout' });
   }
 };
 

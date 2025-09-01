@@ -21,21 +21,20 @@ const Navbar = () => {
   const navLinks = [
     { name: "Home", path: "/" },
     { name: "Products", path: "/products" },
-    { name: "Contact", path: "/contacts" },
+    { name: "Contact", path: "/contact" },
     { name: "About", path: "/about" },
   ];
 
   const handleLogout = async () => {
     try {
-      const {data} = await axios.post("/api/user/logout");
+      const { data } = await axios.post("/api/user/logout");
       if (data.success) {
         toast.success("Logout Successful");
         setUser(null);
         setShowProfileDropdown(false);
-        navigate('/')
-      }else {
+        navigate("/");
+      } else {
         toast.error(data.message);
-
       }
     } catch (error) {
       toast.error(error.message);
@@ -134,13 +133,13 @@ const Navbar = () => {
                       className="block px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition-all duration-200 font-medium"
                       onClick={() => setShowProfileDropdown(false)}
                     >
-                      📦 My Orders
+                      My Orders 📦
                     </a>
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 cursor-pointer font-medium"
                     >
-                      🚪 Logout
+                      Logout ⏻
                     </button>
                   </div>
                 </div>

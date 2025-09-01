@@ -13,7 +13,11 @@ const MainBanner = () => {
           alt="Main Banner"
           className="w-full hidden md:block transition-transform duration-700 hover:scale-105"
         />
-        <img src={mainBanner} alt="Mb:Main Banner" className="w-full md:hidden transition-transform duration-700 hover:scale-105" />
+        <img
+          src={mainBanner}
+          alt="Mb:Main Banner"
+          className="w-full md:hidden transition-transform duration-700 hover:scale-105"
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent"></div>
       </div>
 
@@ -38,7 +42,7 @@ const MainBanner = () => {
             {/* Explore Deals Button — Oval and hidden on small screens */}
             <Link
               to="/products"
-              className="group hidden md:flex items-center gap-2 bg-white/90 backdrop-blur-sm text-green-600 hover:text-green-700 px-8 py-3 rounded-full transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1 border border-green-200 hover:bg-white"
+              className="group flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-full transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
             >
               ✨ Explore Exclusive Deals
               <img

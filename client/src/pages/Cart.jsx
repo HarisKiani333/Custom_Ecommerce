@@ -14,14 +14,15 @@ const Cart = () => {
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [newAddress, setNewAddress] = useState({
-    firstName: '',
-    lastName: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    country: '',
-    phone: ''
+    firstName: "",
+    lastName: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "",
+    phone: "",
   });
 
   const {
@@ -70,25 +71,40 @@ const Cart = () => {
   const addNewAddress = async () => {
     try {
       // Validate required fields
-      const requiredFields = ['firstName', 'lastName', 'address', 'city', 'state', 'zip', 'country', 'phone'];
-      const missingFields = requiredFields.filter(field => !newAddress[field].trim());
-      
+      const requiredFields = [
+        "firstName",
+        "lastName",
+        "email",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "country",
+        "phone",
+      ];
+      const missingFields = requiredFields.filter(
+        (field) => !newAddress[field].trim()
+      );
+
       if (missingFields.length > 0) {
-        return toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+        return toast.error(
+          `Please fill in all required fields: ${missingFields.join(", ")}`
+        );
       }
 
-      const { data } = await axios.post("/api/address/add", newAddress);
+      const { data } = await axios.post("/api/address/add", { address: newAddress });
       if (data.success) {
         toast.success("Address added successfully");
         setNewAddress({
-          firstName: '',
-          lastName: '',
-          address: '',
-          city: '',
-          state: '',
-          zip: '',
-          country: '',
-          phone: ''
+          firstName: "",
+          lastName: "",
+          email: "",
+          address: "",
+          city: "",
+          state: "",
+          zip: "",
+          country: "",
+          phone: "",
         });
         setShowAddressForm(false);
         await getUserAddress(); // Refresh addresses
@@ -111,9 +127,9 @@ const Cart = () => {
   // Handle input change for new address form
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewAddress(prev => ({
+    setNewAddress((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -211,20 +227,28 @@ const Cart = () => {
               {getCartCount()} Items
             </span>
           </div>
-          <p className="text-gray-600 mt-2 text-sm">Review and manage your selected items</p>
+          <p className="text-gray-600 mt-2 text-sm">
+            Review and manage your selected items
+          </p>
         </div>
 
         <div className="grid grid-cols-[2fr_1fr_1fr] text-gray-600 text-base font-semibold pb-4 border-b-2 border-gray-200 mb-4">
-          <p className="text-left flex items-center gap-2">📦 Product Details</p>
-          <p className="text-center flex items-center justify-center gap-2">💰 Subtotal</p>
-          <p className="text-center flex items-center justify-center gap-2">⚡ Action</p>
+          <p className="text-left flex items-center gap-2">
+            📦 Product Details
+          </p>
+          <p className="text-center flex items-center justify-center gap-2">
+            💰 Subtotal
+          </p>
+          <p className="text-center flex items-center justify-center gap-2">
+            ⚡ Action
+          </p>
         </div>
 
         {cartArray.map((product, index) => (
           <div
             key={index}
             className="grid grid-cols-[2fr_1fr_1fr] text-gray-700 items-center text-sm md:text-base font-medium py-4 border-b border-gray-100 hover:bg-gradient-to-r hover:from-gray-50 hover:to-white transition-all duration-300 rounded-lg px-2 animate-in fade-in-50 slide-in-from-bottom-4"
-            style={{animationDelay: `${index * 100}ms`}}
+            style={{ animationDelay: `${index * 100}ms` }}
           >
             <div className="flex items-center md:gap-6 gap-3 group">
               <div
@@ -244,12 +268,10 @@ const Cart = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
               <div className="flex-1">
-                <p className="hidden md:block font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-300 mb-2">{product.name}</p>
+                <p className="hidden md:block font-bold text-gray-800 group-hover:text-green-600 transition-colors duration-300 mb-2">
+                  {product.name}
+                </p>
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-gray-500">⚖️</span>
-                    <span className="font-medium text-gray-600">Weight: {product.weight || "N/A"}</span>
-                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500 text-sm">📊 Qty:</span>
                     <select
@@ -283,7 +305,13 @@ const Cart = () => {
                 className="cursor-pointer p-2 rounded-full hover:bg-red-50 transition-all duration-300 group/btn border border-red-200 hover:border-red-300 shadow-sm hover:shadow-md"
                 title="Remove item"
               >
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="group-hover/btn:scale-110 transition-transform duration-300">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="none"
+                  className="group-hover/btn:scale-110 transition-transform duration-300"
+                >
                   <path
                     d="m12.5 7.5-5 5m0-5 5 5m5.833-2.5a8.333 8.333 0 1 1-16.667 0 8.333 8.333 0 0 1 16.667 0"
                     stroke="#FF532E"
@@ -307,7 +335,10 @@ const Cart = () => {
 
       <div className="max-w-[360px] w-full bg-gradient-to-br from-white to-gray-50 p-8 max-md:mt-16 border border-gray-200 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 animate-in fade-in-50 slide-in-from-right-4 duration-700 delay-200">
         <div className="flex items-center gap-3 mb-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent"> Order Summary</h2>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+            {" "}
+            Order Summary
+          </h2>
         </div>
         <hr className="border-gray-300 my-5" />
 
@@ -367,7 +398,9 @@ const Cart = () => {
                 {/* Existing Addresses */}
                 {address.length > 0 && (
                   <div className="mb-4">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Saved Addresses</h4>
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">
+                      Saved Addresses
+                    </h4>
                     <div className="space-y-2 max-h-48 overflow-y-auto">
                       {address.map((addr) => (
                         <div
@@ -403,7 +436,9 @@ const Cart = () => {
                 {/* New Address Form */}
                 {showAddressForm && (
                   <div className="space-y-3">
-                    <h4 className="text-sm font-medium text-gray-700">Add New Address</h4>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Add New Address
+                    </h4>
                     <div className="grid grid-cols-2 gap-3">
                       <input
                         type="text"
@@ -422,6 +457,14 @@ const Cart = () => {
                         className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
                       />
                     </div>
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email Address"
+                      value={newAddress.email}
+                      onChange={handleInputChange}
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+                    />
                     <input
                       type="text"
                       name="address"
@@ -502,18 +545,24 @@ const Cart = () => {
         {cartArray.length > 0 && (
           <div className="mt-4 space-y-4">
             <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-              <span className="font-medium text-gray-700 flex items-center gap-2">💰 Price</span>
+              <span className="font-medium text-gray-700 flex items-center gap-2">
+                💰 Price
+              </span>
               <span className="font-bold text-lg text-gray-800">
                 {currency}
                 {getCartAmount()}
               </span>
             </div>
             <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-              <span className="font-medium text-gray-700 flex items-center gap-2">🚚 Shipping Fee</span>
+              <span className="font-medium text-gray-700 flex items-center gap-2">
+                🚚 Shipping Fee
+              </span>
               <span className="font-bold text-lg text-green-600">Free</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100 shadow-sm">
-              <span className="font-medium text-gray-700 flex items-center gap-2">📊 Tax(2%)</span>
+              <span className="font-medium text-gray-700 flex items-center gap-2">
+                📊 Tax(2%)
+              </span>
               <span className="font-bold text-lg text-gray-800">
                 {currency}
                 {(getCartAmount() * 0.02).toFixed(2)}
@@ -521,7 +570,9 @@ const Cart = () => {
             </div>
             <div className="border-t-2 border-dashed border-gray-300 my-4"></div>
             <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200 shadow-md">
-              <span className="font-bold text-xl text-green-800 flex items-center gap-2">🎯 Total Amount:</span>
+              <span className="font-bold text-xl text-green-800 flex items-center gap-2">
+                🎯 Total Amount:
+              </span>
               <span className="font-bold text-2xl text-green-600">
                 {currency}
                 {(getCartAmount() * 1.02).toFixed(2)}
@@ -546,7 +597,9 @@ const Cart = () => {
             </>
           ) : (
             <>
-              {paymentOptions === "Cash on Delivery" ? "Place Order" : "Proceed to Pay"}
+              {paymentOptions === "Cash on Delivery"
+                ? "Place Order"
+                : "Proceed to Pay"}
             </>
           )}
         </button>
@@ -579,7 +632,8 @@ const Cart = () => {
           🛒 Your cart is empty
         </h2>
         <p className="text-gray-600 mb-8 text-lg leading-relaxed animate-in slide-in-from-bottom-4 duration-500 delay-400">
-          Looks like you haven't added any items to your cart yet. Start exploring our amazing products!
+          Looks like you haven't added any items to your cart yet. Start
+          exploring our amazing products!
         </p>
         <button
           onClick={() => navigate("/products")}

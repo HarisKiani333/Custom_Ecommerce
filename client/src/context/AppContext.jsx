@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import axios from "axios";
+import { handleError, handleSuccess, logError, retryRequest } from "../utils/errorHandler";
 
 axios.defaults.withCredentials = true;
 axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
@@ -40,7 +41,7 @@ const AppContextProvider = ({ children }) => {
         return false;
       }
     } catch (error) {
-      console.log("Token refresh error:", error.response?.data?.message || error.message);
+      logError(error, { context: 'token_refresh' });
       return false;
     }
   };
@@ -117,9 +118,8 @@ const AppContextProvider = ({ children }) => {
       
       // Handle CORS/Network errors specifically
       if (error.code === 'ERR_NETWORK' || !error.response) {
-        console.error('Network/CORS error - backend server may be down');
         if (retryCount === 0) {
-          toast.error('Unable to connect to server. Please ensure backend is running on the correct port.');
+          handleError(error, { context: 'fetch_user_status', retryCount });
         }
         setUser(null);
         setCartItems({});
@@ -148,7 +148,7 @@ const AppContextProvider = ({ children }) => {
         await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
         return fetchUserStatus(retryCount + 1);
       } else {
-        console.log("Auth error:", message);
+        logError(error, { context: 'fetch_user_status', status, message });
         setUser(null);
         setCartItems({});
         setLoadingUser(false);
@@ -202,7 +202,7 @@ const AppContextProvider = ({ children }) => {
       }
     } catch (error) {
       setIsSeller(false);
-      console.error("Seller auth error:", error);
+      logError(error, { context: 'fetch_seller' });
     }
   };
 
@@ -241,11 +241,10 @@ const AppContextProvider = ({ children }) => {
         setProducts(data.products);
         console.log(data.products);
       } else {
-        toast.error("Error fetching products");
+        handleError(new Error('Failed to fetch products'), { context: 'fetch_products' });
       }
     } catch (error) {
-      console.log(error);
-      toast.error(error.message);
+      handleError(error, { context: 'fetch_products' });
     }
   };
 
@@ -257,10 +256,10 @@ const AppContextProvider = ({ children }) => {
         if (data.success) {
           console.log("Cart updated successfully");
         } else {
-          console.error("Error updating cart:", data.message);
+          logError(new Error(data.message), { context: 'update_cart' });
         }
       } catch (error) {
-        console.log("Cart update error:", error);
+        logError(error, { context: 'update_cart' });
       }
     };
 

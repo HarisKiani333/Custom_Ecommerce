@@ -6,6 +6,7 @@ const OrdersList = () => {
   const [orders, setOrders] = useState([]);
   const [filterStatus, setFilterStatus] = useState("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const { currency, axios } = useAppContext();
 
   const orderStatuses = [
@@ -20,6 +21,7 @@ const OrdersList = () => {
   // Calculate total amount for an order
   const calculateOrderTotal = (items) => {
     return items.reduce((total, item) => {
+      if (!item.product) return total;
       const price = item.product.offerPrice || item.product.price;
       return total + price * item.quantity;
     }, 0);
@@ -54,6 +56,33 @@ const OrdersList = () => {
       name: "Unknown Customer",
       location: "Unknown Location",
     };
+  };
+
+  // Delete order function
+  const handleDeleteOrder = async (orderId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this order? This action cannot be undone."
+    );
+    
+    if (!confirmDelete) return;
+
+    setDeleteLoading(true);
+    try {
+      const { data } = await axios.delete(`/api/order/delete/${orderId}`);
+
+      if (data.success) {
+        toast.success("Order deleted successfully!");
+        // Remove the deleted order from the state
+        setOrders(prevOrders => prevOrders.filter(order => order._id !== orderId));
+      } else {
+        toast.error(data.message || "Failed to delete order");
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      toast.error("Failed to delete order. Please try again.");
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const fetchOrders = async () => {
@@ -313,22 +342,33 @@ const OrdersList = () => {
 
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-1 flex-wrap">
-                            {order.items.slice(0, 3).map((item, idx) => (
-                              <div key={idx} className="relative group">
-                                <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm group-hover:shadow-md transition-all duration-300">
-                                  <img
-                                    src={item.product.image[0]}
-                                    alt={item.product.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                  />
+                            {order.items.slice(0, 3).map((item, idx) => {
+                              if (!item.product) {
+                                return (
+                                  <div key={idx} className="relative group">
+                                    <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-red-200 bg-red-50 flex items-center justify-center">
+                                      <span className="text-red-500 text-xs">❌</span>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return (
+                                <div key={idx} className="relative group">
+                                  <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm group-hover:shadow-md transition-all duration-300">
+                                    <img
+                                      src={item.product.image?.[0] || '/placeholder-image.jpg'}
+                                      alt={item.product.name || 'Product'}
+                                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                  </div>
+                                  {item.quantity > 1 && (
+                                    <span className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md">
+                                      {item.quantity}
+                                    </span>
+                                  )}
                                 </div>
-                                {item.quantity > 1 && (
-                                  <span className="absolute -top-2 -right-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-md">
-                                    {item.quantity}
-                                  </span>
-                                )}
-                              </div>
-                            ))}
+                              );
+                            })}
                             {order.items.length > 3 && (
                               <div className="w-12 h-12 rounded-lg bg-gray-100 border-2 border-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs">
                                 +{order.items.length - 3}
@@ -411,6 +451,18 @@ const OrdersList = () => {
                             </button>
                             <button className="p-2 text-green-600 hover:text-green-800 hover:bg-green-100 rounded-lg transition-all duration-300 transform hover:scale-110">
                               <span className="text-lg">📄</span>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteOrder(order._id)}
+                              disabled={deleteLoading}
+                              className={`p-2 rounded-lg transition-all duration-300 transform hover:scale-110 ${
+                                deleteLoading 
+                                  ? 'text-gray-400 cursor-not-allowed' 
+                                  : 'text-red-600 hover:text-red-800 hover:bg-red-100'
+                              }`}
+                              title={deleteLoading ? "Deleting..." : "Delete Order"}
+                            >
+                              <span className="text-lg">{deleteLoading ? '⏳' : '🗑️'}</span>
                             </button>
                           </div>
                         </td>

@@ -235,7 +235,7 @@ export const updateOrderStatus = async (req, res) => {
 
     // Get the order with populated items and user info before updating
     const orderBeforeUpdate = await Order.findById(orderId)
-      .populate('items.product', 'name')
+      .populate('items.productId', 'name')
       .populate('userId', 'name email');
 
     if (!orderBeforeUpdate) {
@@ -249,7 +249,7 @@ export const updateOrderStatus = async (req, res) => {
       orderId,
       { status },
       { new: true }
-    ).populate('items.product', 'name')
+    ).populate('items.productId', 'name')
      .populate('userId', 'name email');
 
     // Send rating reminder notification if order is delivered/completed and paid
@@ -415,4 +415,55 @@ export const stripeWebhook = async (req, res) => {
   }
 
   res.json({ received: true });
+};
+
+// Delete order function
+export const deleteOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const sellerId = req.sellerId;
+
+    if (!orderId) {
+      return res.json({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
+
+    // Find the order and verify it belongs to the seller
+    const order = await Order.findById(orderId).populate('items.productId');
+    
+    if (!order) {
+      return res.json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Check if all products in the order belong to the authenticated seller
+    const hasUnauthorizedProducts = order.items.some(item => {
+      return item.productId && item.productId.sellerId.toString() !== sellerId;
+    });
+
+    if (hasUnauthorizedProducts) {
+      return res.json({
+        success: false,
+        message: "Unauthorized: You can only delete orders containing your products",
+      });
+    }
+
+    // Delete the order
+    await Order.findByIdAndDelete(orderId);
+
+    res.json({
+      success: true,
+      message: "Order deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    res.json({
+      success: false,
+      message: "Failed to delete order",
+    });
+  }
 };
