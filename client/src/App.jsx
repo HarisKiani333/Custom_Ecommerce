@@ -21,6 +21,7 @@ import Loader from "./pages/Loader";
 import UniversalLoader from "./components/UniversalLoader";
 import { ContactPage } from "./pages/ContactPage";
 import { AboutPage } from "./pages/AboutPage";
+import { NotFound } from "./pages/NotFound";
 
 function App() {
   const { showUserLogin, user, isSeller } = useAppContext();
@@ -79,6 +80,9 @@ function App() {
             <Route path="product-list" element={<ProductsList />} />
             <Route path="order-list" element={<OrdersList />} />
           </Route>
+          
+          {/* Catch-all route for undefined URLs */}
+          <Route path="*" element={<NotFound />} />
           
           </Routes>
         </main>
