@@ -1,4 +1,5 @@
 import { Address } from "../models/Address.js";
+import { sendErrorResponse, sendSuccessResponse } from "../utils/errorLogger.js";
 
 // add address /api/address/add
 export const addAddress = async (req, res) => {
@@ -6,21 +7,12 @@ export const addAddress = async (req, res) => {
     const userId = req.userId;
     const { address } = req.body || {};
 
-    console.log("Received userId:", userId); // Debug log
-    console.log("Received address:", address); // Debug log
-
     if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "User authentication required",
-      });
+      return sendErrorResponse(res, "User authentication required", 401);
     }
 
     if (!address) {
-      return res.status(400).json({
-        success: false,
-        message: "Address data is required",
-      });
+      return sendErrorResponse(res, "Address data is required", 400);
     }
 
     // Updated validation to match Address model fields
@@ -38,38 +30,24 @@ export const addAddress = async (req, res) => {
     const missingFields = requiredFields.filter((field) => !address[field]);
 
     if (missingFields.length > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-      });
+      return sendErrorResponse(res, `Missing required fields: ${missingFields.join(", ")}`, 400);
     }
 
     const newAddress = await Address.create({ ...address, userId });
-    console.log("Address created successfully:", newAddress._id); // Debug log
 
-    res.status(200).json({
-      success: true,
-      message: "Address added successfully",
+    return sendSuccessResponse(res, {
       addressId: newAddress._id,
-    });
+    }, "Address added successfully");
   } catch (error) {
-    console.error("Address creation error:", error); // Enhanced error logging
-
     // Handle Mongoose validation errors
     if (error.name === "ValidationError") {
       const validationErrors = Object.values(error.errors).map(
         (err) => err.message
       );
-      return res.status(400).json({
-        success: false,
-        message: `Validation failed: ${validationErrors.join(", ")}`,
-      });
+      return sendErrorResponse(res, `Validation failed: ${validationErrors.join(", ")}`, 400);
     }
 
-    res.status(500).json({
-      success: false,
-      message: error.message || "Internal server error",
-    });
+    return sendErrorResponse(res, error.message || "Internal server error", 500);
   }
 };
 
@@ -77,9 +55,15 @@ export const addAddress = async (req, res) => {
 export const getAddress = async (req, res) => {
   try {
     const userId = req.userId;
+    
+    if (!userId) {
+      return sendErrorResponse(res, "User authentication required", 401);
+    }
+    
     const address = await Address.find({ userId });
-    res.status(200).json({ success: true, address });
+    
+    return sendSuccessResponse(res, { address }, "Addresses retrieved successfully");
   } catch (error) {
-    res.json(400).json({ success: false, message: "Address not added" });
+    return sendErrorResponse(res, error.message || "Failed to retrieve addresses", 500);
   }
 };

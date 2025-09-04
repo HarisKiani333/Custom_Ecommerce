@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Menu, X, Search, ShoppingCart, User } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Menu, X, Search, User } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
+import CartButton from "./CartButton";
 import toast from "react-hot-toast";
 
 const Navbar = () => {
@@ -25,21 +26,28 @@ const Navbar = () => {
     { name: "About", path: "/about" },
   ];
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
+      // Clear user state immediately for better UX
+      setUser(null);
+      setShowProfileDropdown(false);
+
       const { data } = await axios.post("/api/user/logout");
       if (data.success) {
         toast.success("Logout Successful");
-        setUser(null);
-        setShowProfileDropdown(false);
         navigate("/");
       } else {
-        toast.error(data.message);
+        // Even if server logout fails, user is already logged out locally
+        toast.success("Logged out successfully");
+        navigate("/");
       }
     } catch (error) {
-      toast.error(error.message);
+      // Even if logout request fails, user is already logged out locally
+      console.error("Logout error:", error);
+      toast.success("Logged out successfully");
+      navigate("/");
     }
-  };
+  }, [axios, setUser, navigate, setShowProfileDropdown]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -59,7 +67,7 @@ const Navbar = () => {
     if (searchQuery.length > 0) {
       navigate("/products");
     }
-  }, [searchQuery]);
+  }, [searchQuery, navigate]);
 
   return (
     <header className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-100 z-50 transition-all duration-300">
@@ -99,15 +107,7 @@ const Navbar = () => {
             </a>
           ))}
 
-          <button
-            onClick={() => navigate("/cart")}
-            className="relative p-2 text-gray-700 hover:text-green-600 transition-all duration-200 cursor-pointer hover:bg-green-50 rounded-full"
-          >
-            <ShoppingCart className="w-6 h-6" />
-            <span className="absolute -top-1 -right-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse">
-              {getCartCount() > 0 ? getCartCount() : 0}
-            </span>
-          </button>
+          <CartButton />
 
           {!user ? (
             <button
@@ -151,20 +151,7 @@ const Navbar = () => {
         {/* Mobile Toggle */}
 
         <div className="flex items-center gap-6 sm:hidden">
-          <div>
-            <button
-              onClick={() => navigate("/cart")}
-              className="relative p-2 text-gray-700 hover:text-green-600 transition-all duration-200 cursor-pointer hover:bg-green-50 rounded-full"
-            >
-              <ShoppingCart className="w-6 h-6" />
-              <span
-                onClick={() => navigate("/cart")}
-                className="absolute -top-1 -right-1 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-md animate-pulse"
-              >
-                {getCartCount() > 0 ? getCartCount() : 0}
-              </span>
-            </button>
-          </div>
+          <CartButton />
 
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -217,28 +204,29 @@ const Navbar = () => {
             </a>
           )}
 
-          <div className="flex items-center justify-between mt-3">
-            <button
-              onClick={() => navigate("/cart")}
-              className="flex items-center gap-2 text-gray-700 hover:text-green-600 cursor-pointer"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              <span>{`(${getCartCount() > 0 ? getCartCount() : 0})`}</span>
-            </button>
+          <div className="flex items-center justify-between mt-3 gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 text-gray-700">
+              <CartButton
+                className="flex items-center p-0 hover:bg-transparent hover:text-green-600 cursor-pointer"
+                showCount={false}
+                size="w-4 h-4 sm:w-5 sm:h-5"
+              />
+              <span className="text-sm sm:text-base">{`(${getCartCount() > 0 ? getCartCount() : 0})`}</span>
+            </div>
             {!user ? (
               <button
                 onClick={() => {
                   setIsMenuOpen(false);
                   setShowUserLogin(true);
                 }}
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-2 rounded-full transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-3 py-1.5 sm:px-6 sm:py-2 rounded-full transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg transform hover:scale-105 font-medium text-sm sm:text-base"
               >
                 Login
               </button>
             ) : (
               <button
                 onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition"
+                className="bg-red-600 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full hover:bg-red-700 transition text-sm sm:text-base"
               >
                 Logout
               </button>

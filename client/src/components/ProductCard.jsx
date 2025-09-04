@@ -1,30 +1,29 @@
-import React from "react";
+import React, { memo } from "react";
 import { useAppContext } from "../context/AppContext";
 import StarRating from "./StarRating";
 import { ShoppingCart } from "lucide-react";
 
-const ProductCard = ({ product }) => {
+const ProductCard = memo(({ product }) => {
   const {
     currency,
     navigate,
     addCartItem,
-    updateCartItem,
     removeCartItem,
     cartItems,
-    getcartCount,
   } = useAppContext();
 
+  if (!product) return null;
+
+  const handleProductClick = () => {
+    navigate(`/products/${product.category.toLowerCase()}/${product._id}`);
+    window.scrollTo(0, 0);
+  };
+
   return (
-    product && (
-      <div
-        onClick={() => {
-          navigate(
-            `/products/${product.category.toLowerCase()}/${product._id}`
-          );
-          scrollTo(0, 0);
-        }}
-        className={`${product.bgColor} rounded-xl p-3 flex flex-col items-center justify-between text-center shadow-md hover:shadow-xl group cursor-pointer w-full h-[280px] max-w-[180px] transition-all duration-300 hover:-translate-y-1 border border-gray-100 hover:border-green-200`}
-      >
+    <div
+      onClick={handleProductClick}
+      className={`${product.bgColor} rounded-xl p-3 flex flex-col items-center justify-between text-center shadow-md hover:shadow-xl group cursor-pointer w-full h-[280px] max-w-[180px] transition-all duration-300 hover:-translate-y-1 border border-gray-100 hover:border-green-200`}
+    >
         <div className="flex flex-col items-center flex-1">
           <div className="relative overflow-hidden rounded-lg mb-2 h-16 w-16 flex items-center justify-center">
             <img
@@ -57,8 +56,7 @@ const ProductCard = ({ product }) => {
         <div className="mt-auto" onClick={(e) => e.stopPropagation()}>
           {!cartItems[product._id] ? (
             <button
-              className={`bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-[11px] px-4 py-2 rounded-full font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-1 transform hover:scale-105 
-    ${getcartCount === 0 ? "cursor-pointer" : ""}`}
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-[11px] px-4 py-2 rounded-full font-medium shadow-md hover:shadow-lg transition-all duration-200 flex items-center gap-1 transform hover:scale-105"
               onClick={() => addCartItem(product._id)}
             >
               <ShoppingCart className="w-3 h-3" />
@@ -82,9 +80,10 @@ const ProductCard = ({ product }) => {
             </div>
           )}
         </div>
-      </div>
-    )
+    </div>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;

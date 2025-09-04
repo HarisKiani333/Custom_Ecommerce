@@ -32,21 +32,28 @@ const ProductLists = () => {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 animate-in slide-in-from-top-4 duration-500">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent mb-2">
-            📋 Products Inventory
+            <span className="text-black">📋</span>
+            Products Inventory
           </h1>
-          <p className="text-gray-600">Manage your product stock and availability</p>
+          <p className="text-gray-600">
+            Manage your product stock and availability
+          </p>
           <div className="mt-4 flex justify-center gap-4 text-sm">
             <div className="bg-white px-4 py-2 rounded-full shadow-sm border">
               <span className="text-gray-600">Total Products: </span>
-              <span className="font-bold text-green-600">{products.length}</span>
+              <span className="font-bold text-green-600">
+                {products.length}
+              </span>
             </div>
             <div className="bg-white px-4 py-2 rounded-full shadow-sm border">
               <span className="text-gray-600">In Stock: </span>
-              <span className="font-bold text-green-600">{products.filter(p => p.inStock).length}</span>
+              <span className="font-bold text-green-600">
+                {products.filter((p) => p.inStock).length}
+              </span>
             </div>
           </div>
         </div>
-        
+
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-700 delay-200">
           <div className="bg-gradient-to-r from-green-500 to-green-600 p-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -54,7 +61,7 @@ const ProductLists = () => {
               Product Management
             </h2>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50 border-b-2 border-gray-200">
@@ -93,14 +100,22 @@ const ProductLists = () => {
                         <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                           <span className="text-4xl">📦</span>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-700 mb-2">No Products Found</h3>
-                        <p className="text-gray-500">Start by adding your first product to the inventory</p>
+                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                          No Products Found
+                        </h3>
+                        <p className="text-gray-500">
+                          Start by adding your first product to the inventory
+                        </p>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   products.map((product, index) => (
-                    <tr key={product._id} className="hover:bg-gray-50 transition-all duration-300 animate-in slide-in-from-left-4 duration-500" style={{ animationDelay: `${100 + index * 50}ms` }}>
+                    <tr
+                      key={product._id}
+                      className="hover:bg-gray-50 transition-all duration-300 animate-in slide-in-from-left-4 duration-500"
+                      style={{ animationDelay: `${100 + index * 50}ms` }}
+                    >
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-4">
                           <div className="relative group">
@@ -116,7 +131,9 @@ const ProductLists = () => {
                             <h3 className="text-sm font-semibold text-gray-900 truncate">
                               {product.name}
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1">ID: {product._id.slice(-6)}</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              ID: {product._id.slice(-6)}
+                            </p>
                           </div>
                         </div>
                       </td>
@@ -128,11 +145,13 @@ const ProductLists = () => {
                       <td className="px-6 py-4 hidden md:table-cell">
                         <div className="flex flex-col">
                           <span className="text-lg font-bold text-gray-900">
-                            {currency}{product.offerPrice}
+                            {currency}
+                            {product.offerPrice}
                           </span>
                           {product.price !== product.offerPrice && (
                             <span className="text-sm text-gray-500 line-through">
-                              {currency}{product.price}
+                              {currency}
+                              {product.price}
                             </span>
                           )}
                         </div>
@@ -141,7 +160,9 @@ const ProductLists = () => {
                         <div className="flex items-center justify-center">
                           <label className="relative inline-flex items-center cursor-pointer group">
                             <input
-                              onChange={() => toggleStock(product._id, !product.inStock)}
+                              onChange={() =>
+                                toggleStock(product._id, !product.inStock)
+                              }
                               checked={product.inStock}
                               type="checkbox"
                               className="sr-only peer"
@@ -150,18 +171,22 @@ const ProductLists = () => {
                             <div className="w-14 h-8 bg-gray-200 rounded-full peer peer-checked:bg-green-500 transition-all duration-300 shadow-inner group-hover:shadow-lg">
                               <div className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ease-in-out peer-checked:translate-x-6 flex items-center justify-center">
                                 <span className="text-xs">
-                                  {product.inStock ? '✓' : '✕'}
+                                  {product.inStock ? "✓" : "✕"}
                                 </span>
                               </div>
                             </div>
                           </label>
                           <div className="ml-3">
-                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                              product.inStock 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {product.inStock ? '✅ In Stock' : '❌ Out of Stock'}
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                product.inStock
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {product.inStock
+                                ? "✅ In Stock"
+                                : "❌ Out of Stock"}
                             </span>
                           </div>
                         </div>
@@ -172,12 +197,14 @@ const ProductLists = () => {
               </tbody>
             </table>
           </div>
-          
+
           {loading && (
             <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center">
               <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-lg">
                 <div className="w-5 h-5 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-gray-700 font-medium">Updating stock status...</span>
+                <span className="text-gray-700 font-medium">
+                  Updating stock status...
+                </span>
               </div>
             </div>
           )}

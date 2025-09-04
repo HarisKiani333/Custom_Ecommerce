@@ -283,7 +283,7 @@ const MyOrderPage = () => {
         if (orderIds.length === 0) return;
 
         const { data } = await appAxios.get(
-          `/api/order-rating/user-ratings?orderIds=${orderIds.join(",")}`,
+          `/api/order-rating/user?orderIds=${orderIds.join(",")}`,
           { withCredentials: true }
         );
 

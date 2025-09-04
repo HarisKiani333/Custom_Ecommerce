@@ -4,6 +4,7 @@ import Product from "../models/Product.js";
 import Rating from "../models/Rating.js";
 import User from "../models/User.js";
 import { v2 } from "cloudinary"; // Import v2 directly since we only use v2
+import { logError, sendErrorResponse, sendSuccessResponse } from "../utils/errorLogger.js";
 
 export const addProduct = async (req, res) => {
   try {
@@ -39,10 +40,8 @@ export const addProduct = async (req, res) => {
     });
     
     console.log('Product created successfully:', newProduct._id);
-    res.json({ success: true, message: "Product added successfully" });
+    return sendSuccessResponse(res, { product: newProduct }, "Product added successfully", 201);
   } catch (error) {
-    console.error('Product addition error:', error);
-    
     // Handle MongoDB unique constraint violations
     if (error.code === 11000) {
       // Check if it's the composite unique constraint on sellerId + name
@@ -69,7 +68,7 @@ export const addProduct = async (req, res) => {
       });
     }
     
-    res.json({ success: false, message: error.message || "Product not added" });
+    return sendErrorResponse(res, error, 500, { context: 'add_product', productName: req.body?.productData });
   }
 };
 
@@ -112,11 +111,9 @@ export const productList = async (req, res) => {
       totalRatings: ratingsMap[product._id.toString()]?.totalRatings || 0
     }));
     
-    res.json({ success: true, products: productsWithRatings });
+    return sendSuccessResponse(res, { products: productsWithRatings }, "Products fetched successfully", 200);
   } catch (error) {
-    console.error('Product list error:', error);
-    res.json({ success: false, message: "Failed to fetch products" });
-    console.log(error);
+    return sendErrorResponse(res, error, 500, { context: 'fetch_products' });
   }
 };
 

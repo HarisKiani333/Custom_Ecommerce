@@ -269,6 +269,58 @@ export const deleteRating = async (req, res) => {
   }
 };
 
+// Get user's ratings for multiple products
+export const getUserProductRatings = async (req, res) => {
+  try {
+    const { productIds } = req.query;
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    if (!productIds) {
+      return res.status(400).json({
+        success: false,
+        message: "Product IDs are required",
+      });
+    }
+
+    const productIdArray = productIds.split(',').filter(id => id.trim());
+    
+    if (productIdArray.length === 0) {
+      return res.json({
+        success: true,
+        ratings: [],
+      });
+    }
+
+    const ratings = await Rating.find({ 
+      userId, 
+      productId: { $in: productIdArray } 
+    }).populate("userId", "name");
+
+    const ratingsMap = {};
+    ratings.forEach(rating => {
+      ratingsMap[rating.productId] = rating;
+    });
+
+    res.json({
+      success: true,
+      ratings: ratingsMap,
+    });
+  } catch (error) {
+    console.error("Error fetching user ratings:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch user ratings",
+    });
+  }
+};
+
 // Check if user can rate a product (has purchased it)
 export const canUserRate = async (req, res) => {
   try {

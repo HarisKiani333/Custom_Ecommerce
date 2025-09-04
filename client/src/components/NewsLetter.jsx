@@ -71,7 +71,7 @@ const NewsLetter = () => {
 
         <div className="w-full px-4">
           <form onSubmit={handleSubmit}>
-            <div className="flex items-center justify-center mt-10 border border-gray-300 focus-within:outline focus-within:outline-green-600 text-sm rounded-full h-14 max-w-xl w-full mx-auto">
+            <div className="flex items-center justify-center mt-6 sm:mt-10 border border-gray-300 focus-within:outline focus-within:outline-green-600 text-xs sm:text-sm rounded-full h-11 sm:h-14 max-w-sm sm:max-w-xl w-full mx-auto">
               <input
                 type="email"
                 value={email}
@@ -87,7 +87,7 @@ const NewsLetter = () => {
                   isLoading
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-green-600 hover:bg-green-700 cursor-pointer"
-                } transition-colors duration-200 text-white rounded-full h-11 mr-1 px-8 text-sm sm:text-base flex items-center justify-center`}
+                } transition-colors duration-200 text-white rounded-full h-9 sm:h-11 mr-1 px-4 sm:px-6 md:px-8 text-xs sm:text-sm md:text-base flex items-center justify-center font-medium`}
               >
                 {isLoading ? (
                   <>

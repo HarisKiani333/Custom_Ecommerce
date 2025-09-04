@@ -40,7 +40,7 @@ const handleLogout = async () => {
   return (
     <>
       <div className="flex items-center justify-between px-4 md:px-8 border-b border-gray-200 py-4 bg-gradient-to-r from-white to-gray-50 shadow-sm transition-all duration-300 animate-in fade-in-50 duration-700">
-        <Link to="/" className="transform hover:scale-105 transition-transform duration-300">
+        <Link to="/seller" className="transform hover:scale-105 transition-transform duration-300">
           <img className="h-14 drop-shadow-sm" src={Logo} alt="Home Logo" />
         </Link>
         <div className="flex items-center gap-6 text-gray-600">

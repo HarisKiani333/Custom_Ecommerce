@@ -14,6 +14,6 @@ userRouter.post("/register", register);
 userRouter.post("/login", login);
 userRouter.get("/is-auth", authUser, isAuth);
 userRouter.post("/refresh", refreshToken); // Add this route
-userRouter.post("/logout", logout);
+userRouter.post("/logout", authUser, logout);
 
 export default userRouter;

@@ -3,6 +3,7 @@ import {
   createRating,
   getProductRatings,
   getUserProductRating,
+  getUserProductRatings,
   updateRating,
   deleteRating,
   canUserRate,
@@ -19,6 +20,9 @@ ratingRouter.get("/product/:productId", getProductRatings);
 
 // Get user's rating for a specific product (requires authentication)
 ratingRouter.get("/user/:productId", authUser, getUserProductRating);
+
+// Get user's ratings for multiple products (requires authentication)
+ratingRouter.get("/user-ratings", authUser, getUserProductRatings);
 
 // Update user's rating (requires authentication)
 ratingRouter.put("/update/:ratingId", authUser, updateRating);

@@ -162,8 +162,10 @@ const OrdersList = () => {
       <div className="max-w-7xl mx-auto">
         {/* Enhanced Header */}
         <div className="text-center mb-8 animate-in slide-in-from-top-4 duration-500">
+          
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-700 bg-clip-text text-transparent mb-2">
-            📦 Order Management
+              <span className="text-black">📦</span> 
+             Order Management
           </h1>
           <p className="text-gray-600">Track and manage customer orders efficiently</p>
           <div className="mt-4 flex justify-center gap-4 text-sm">

@@ -53,8 +53,10 @@ const AppContextProvider = ({ children }) => {
       async (error) => {
         const originalRequest = error.config;
         
-        // Don't retry refresh requests to avoid infinite loops
-        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/refresh')) {
+        // Don't retry refresh requests or logout requests to avoid infinite loops
+        if (error.response?.status === 401 && !originalRequest._retry && 
+            !originalRequest.url?.includes('/refresh') && 
+            !originalRequest.url?.includes('/logout')) {
           originalRequest._retry = true;
           
           const refreshSuccess = await refreshToken();
@@ -180,12 +182,12 @@ const AppContextProvider = ({ children }) => {
   //   fetchUserStatus();
   // }, []);
   
-  // Add periodic auth check (optional - for long-running sessions)
+  // Optimized periodic auth check
   useEffect(() => {
+    if (!user) return;
+
     const authCheckInterval = setInterval(() => {
-      if (user) {
-        fetchUserStatus();
-      }
+      fetchUserStatus();
     }, 15 * 60 * 1000); // Check every 15 minutes
     
     return () => clearInterval(authCheckInterval);
@@ -201,8 +203,12 @@ const AppContextProvider = ({ children }) => {
         setIsSeller(false);
       }
     } catch (error) {
+      // Silently handle seller auth errors as they're expected for regular users
       setIsSeller(false);
-      logError(error, { context: 'fetch_seller' });
+      // Only log non-401 errors as 401 is expected for non-sellers
+      if (error.response?.status !== 401) {
+        logError(error, { context: 'fetch_seller' });
+      }
     }
   };
 
@@ -248,9 +254,11 @@ const AppContextProvider = ({ children }) => {
     }
   };
 
-  // Fixed cart update logic - removed problematic navigation
+  // Optimized cart update logic with debouncing
   useEffect(() => {
-    const updateCart = async () => {
+    if (!user || Object.keys(cartItems).length === 0) return;
+
+    const timeoutId = setTimeout(async () => {
       try {
         const { data } = await axios.post("/api/cart/update", { cartItems });
         if (data.success) {
@@ -261,13 +269,10 @@ const AppContextProvider = ({ children }) => {
       } catch (error) {
         logError(error, { context: 'update_cart' });
       }
-    };
+    }, 500); // Debounce cart updates by 500ms
 
-    // Only update cart if user is logged in and cartItems is not empty
-    if (user) {
-      updateCart();
-    }
-  }, [cartItems]); // Added user to dependencies
+    return () => clearTimeout(timeoutId);
+  }, [cartItems, user]);
 
   const getCartCount = () => {
     let totalCount = 0;

@@ -4,42 +4,40 @@ import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Stripe from "stripe";
 import { scheduleRatingReminder } from "../services/notificationService.js";
+import { sendErrorResponse, sendSuccessResponse } from "../utils/errorLogger.js";
+// Helper function to calculate order amount
+const calculateOrderAmount = async (items) => {
+  const itemPromises = items.map(async (item) => {
+    const product = await Product.findById(item.productId);
+    if (!product) throw new Error(`Product not found: ${item.productId}`);
+    return { product, amount: product.offerPrice * item.quantity };
+  });
+
+  const itemResults = await Promise.all(itemPromises);
+  const products = itemResults.map(result => result.product);
+  let amount = itemResults.reduce((sum, result) => sum + result.amount, 0);
+  
+  // Add 2% tax
+  amount += Math.floor(amount * 0.02);
+  
+  return { products, amount };
+};
+
 export const placeOrderOnline = async (req, res) => {
   try {
-const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
     const { items, address } = req.body;
     const userId = req.userId;
     const origin = req.headers.origin || process.env.CLIENT_URL;
 
     if (!userId || !items || items.length === 0 || !address) {
-      return res.json({
-        success: false,
-        message: "Please fill all the fields",
-      });
+      return sendErrorResponse(res, "Please fill all the fields", 400);
     }
 
-    // Calculate total amount
-    let amount = 0;
-    const products = [];
-
-    const itemPromises = items.map(async (item) => {
-      const product = await Product.findById(item.productId);
-      if (!product) throw new Error(`Product not found: ${item.productId}`);
-      products.push(product);
-      return product.offerPrice * item.quantity;
-    });
-
-    const itemAmounts = await Promise.all(itemPromises);
-    amount = itemAmounts.reduce((sum, itemAmount) => sum + itemAmount, 0);
-
-    // Add 2% tax
-    amount += Math.floor(amount * 0.02);
+    const { products, amount } = await calculateOrderAmount(items);
 
     if (isNaN(amount) || amount <= 0) {
-      return res.json({
-        success: false,
-        message: "Invalid order amount calculated",
-      });
+      return sendErrorResponse(res, "Invalid order amount calculated", 400);
     }
 
     // Create order in DB
@@ -77,17 +75,12 @@ const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
       },
     });
 
-    return res.json({
-      success: true,
+    return sendSuccessResponse(res, {
       url: session.url,
       sessionId: session.id,
-    });
+    }, "Stripe session created successfully");
   } catch (error) {
-    console.error("Order creation error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to create order: " + error.message,
-    });
+    return sendErrorResponse(res, `Failed to create order: ${error.message}`, 500);
   }
 };
 
@@ -97,43 +90,13 @@ export const placeOrderCOD = async (req, res) => {
     const { items, address } = req.body || {};
 
     if (!userId || !items || items.length === 0 || !address) {
-      return res.json({
-        success: false,
-        message: "Please fill all the fields",
-      });
+      return sendErrorResponse(res, "Please fill all the fields", 400);
     }
 
-    // ✅ FIX: Use Promise.all with map instead of async reduce
-    let amount = 0;
+    const { amount } = await calculateOrderAmount(items);
 
-    // Calculate total amount for all items
-    const itemPromises = items.map(async (item) => {
-      const product = await Product.findById(item.productId);
-      if (!product) {
-        throw new Error(`Product not found: ${item.productId}`);
-      }
-      return product.offerPrice * item.quantity;
-    });
-
-    try {
-      const itemAmounts = await Promise.all(itemPromises);
-      amount = itemAmounts.reduce((sum, itemAmount) => sum + itemAmount, 0);
-    } catch (error) {
-      return res.json({
-        success: false,
-        message: error.message || "Product validation failed",
-      });
-    }
-
-    // Adding 2% tax
-    amount += Math.floor(amount * 0.02);
-
-    // ✅ Ensure amount is a valid number
     if (isNaN(amount) || amount <= 0) {
-      return res.json({
-        success: false,
-        message: "Invalid order amount calculated",
-      });
+      return sendErrorResponse(res, "Invalid order amount calculated", 400);
     }
 
     const newOrder = await Order.create({
@@ -142,29 +105,23 @@ export const placeOrderCOD = async (req, res) => {
         productId: item.productId,
         quantity: item.quantity,
       })),
-      amount: Number(amount), // Explicitly convert to number
+      amount: Number(amount),
       address,
       paymentType: "Cash on Delivery",
     });
 
-    return res.json({
-      success: true,
-      message: "Order placed successfully",
+    return sendSuccessResponse(res, {
       orderId: newOrder._id,
-    });
+    }, "Order placed successfully");
   } catch (error) {
-    console.error("Order creation error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to create order: " + error.message,
-    });
+    return sendErrorResponse(res, `Failed to create order: ${error.message}`, 500);
   }
 };
 
 //get all orders : /api/order/get-all-orders (for users)
 export const getUserOrders = async (req, res) => {
   try {
-    const userId = req.userId; // ✅ comes from middleware
+    const userId = req.userId;
 
     const orders = await Order.find({ userId })
       .populate({
@@ -184,10 +141,9 @@ export const getUserOrders = async (req, res) => {
       orderDate: order.createdAt.toLocaleDateString(),
     }));
 
-    return res.json({ success: true, orders: transformedOrders });
+    return sendSuccessResponse(res, { orders: transformedOrders }, "Orders retrieved successfully");
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    return sendErrorResponse(res, error.message, 500);
   }
 };
 
@@ -205,19 +161,18 @@ export const getSellerOrders = async (req, res) => {
       .populate("address")
       .sort({ createdAt: -1 });
 
-    // ✅ Transform data to match frontend expectations
+    // Transform data to match frontend expectations
     const transformedOrders = orders.map((order) => ({
       ...order.toObject(),
       items: order.items.map((item) => ({
-        product: item.productId, // Transform productId to product
+        product: item.productId,
         quantity: item.quantity,
       })),
     }));
 
-    return res.json({ success: true, orders: transformedOrders });
+    return sendSuccessResponse(res, { orders: transformedOrders }, "Seller orders retrieved successfully");
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    return sendErrorResponse(res, error.message, 500);
   }
 };
 
@@ -227,10 +182,7 @@ export const updateOrderStatus = async (req, res) => {
     const { orderId, status } = req.body;
 
     if (!orderId || !status) {
-      return res.json({
-        success: false,
-        message: "Order ID and status are required",
-      });
+      return sendErrorResponse(res, "Order ID and status are required", 400);
     }
 
     // Get the order with populated items and user info before updating
@@ -239,10 +191,7 @@ export const updateOrderStatus = async (req, res) => {
       .populate('userId', 'name email');
 
     if (!orderBeforeUpdate) {
-      return res.json({
-        success: false,
-        message: "Order not found",
-      });
+      return sendErrorResponse(res, "Order not found", 404);
     }
 
     const updatedOrder = await Order.findByIdAndUpdate(
@@ -265,14 +214,9 @@ export const updateOrderStatus = async (req, res) => {
       }
     }
 
-    return res.json({
-      success: true,
-      message: "Order status updated successfully",
-      order: updatedOrder,
-    });
+    return sendSuccessResponse(res, { order: updatedOrder }, "Order status updated successfully");
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    return sendErrorResponse(res, error.message, 500);
   }
 };
 
@@ -282,10 +226,7 @@ export const updatePaymentStatus = async (req, res) => {
     const { orderId, isPaid } = req.body;
 
     if (!orderId || typeof isPaid !== "boolean") {
-      return res.json({
-        success: false,
-        message: "Order ID and payment status are required",
-      });
+      return sendErrorResponse(res, "Order ID and payment status are required", 400);
     }
 
     const updatedOrder = await Order.findByIdAndUpdate(
@@ -295,49 +236,44 @@ export const updatePaymentStatus = async (req, res) => {
     );
 
     if (!updatedOrder) {
-      return res.json({
-        success: false,
-        message: "Order not found",
-      });
+      return sendErrorResponse(res, "Order not found", 404);
     }
 
-    return res.json({
-      success: true,
-      message: "Payment status updated successfully",
-      order: updatedOrder,
-    });
+    return sendSuccessResponse(res, { order: updatedOrder }, "Payment status updated successfully");
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    return sendErrorResponse(res, error.message, 500);
   }
 };
 
 export const placeOrderGuest = async (req, res) => {
   try {
-    const { items, amount, guestAddress, guestInfo, paymentType } = req.body;
+    const { items, address } = req.body || {};
 
-    if (!items?.length || !guestAddress || !guestInfo) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid order data" });
+    if (!items || items.length === 0 || !address) {
+      return sendErrorResponse(res, "Please fill all the fields", 400);
+    }
+
+    const { amount } = await calculateOrderAmount(items);
+
+    if (isNaN(amount) || amount <= 0) {
+      return sendErrorResponse(res, "Invalid order amount calculated", 400);
     }
 
     const newOrder = await Order.create({
-      items,
-      amount,
-      guestAddress,
-      guestInfo,
-      paymentType,
+      items: items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      })),
+      amount: Number(amount),
+      address,
+      paymentType: "Cash on Delivery",
     });
 
-    res.json({
-      success: true,
-      message: "Order placed successfully",
-      order: newOrder,
-    });
+    return sendSuccessResponse(res, {
+      orderId: newOrder._id,
+    }, "Order placed successfully");
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: error.message });
+    return sendErrorResponse(res, `Failed to create order: ${error.message}`, 500);
   }
 };
 
@@ -421,49 +357,32 @@ export const stripeWebhook = async (req, res) => {
 export const deleteOrder = async (req, res) => {
   try {
     const { orderId } = req.params;
-    const sellerId = req.sellerId;
+    const sellerId = req.userId;
 
     if (!orderId) {
-      return res.json({
-        success: false,
-        message: "Order ID is required",
-      });
+      return sendErrorResponse(res, "Order ID is required", 400);
     }
 
-    // Find the order and verify it belongs to the seller
-    const order = await Order.findById(orderId).populate('items.productId');
-    
+    // Find the order and populate product details
+    const order = await Order.findById(orderId).populate("items.productId");
+
     if (!order) {
-      return res.json({
-        success: false,
-        message: "Order not found",
-      });
+      return sendErrorResponse(res, "Order not found", 404);
     }
 
-    // Check if all products in the order belong to the authenticated seller
-    const hasUnauthorizedProducts = order.items.some(item => {
-      return item.productId && item.productId.sellerId.toString() !== sellerId;
-    });
+    // Check if the seller owns any products in this order
+    const sellerOwnsProducts = order.items.some(
+      (item) => item.productId.sellerId.toString() === sellerId
+    );
 
-    if (hasUnauthorizedProducts) {
-      return res.json({
-        success: false,
-        message: "Unauthorized: You can only delete orders containing your products",
-      });
+    if (!sellerOwnsProducts) {
+      return sendErrorResponse(res, "You can only delete orders containing your products", 403);
     }
 
-    // Delete the order
     await Order.findByIdAndDelete(orderId);
 
-    res.json({
-      success: true,
-      message: "Order deleted successfully",
-    });
+    return sendSuccessResponse(res, {}, "Order deleted successfully");
   } catch (error) {
-    console.error("Error deleting order:", error);
-    res.json({
-      success: false,
-      message: "Failed to delete order",
-    });
+    return sendErrorResponse(res, "Failed to delete order", 500);
   }
 };

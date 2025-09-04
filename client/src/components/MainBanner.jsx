@@ -29,24 +29,25 @@ const MainBanner = () => {
             {/* Shop Now Button */}
             <Link
               to="/products"
-              className="group flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-full transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
+              className="group flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 sm:px-6 md:px-8 sm:py-3 rounded-full transition-all duration-300 font-medium sm:font-semibold text-sm sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
             >
-              🛒 Shop Now!
+              <span className="hidden xs:inline">🛒</span> Shop Now!
               <img
-                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-2"
+                className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover:translate-x-2"
                 src={blackArrow}
                 alt="arrow"
               />
             </Link>
 
-            {/* Explore Deals Button — Oval and hidden on small screens */}
+            {/* Explore Deals Button — Responsive and hidden on very small screens */}
             <Link
               to="/products"
-              className="group flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-full transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
+              className="group hidden xs:flex items-center gap-1 sm:gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-3 py-2 sm:px-6 md:px-8 sm:py-3 rounded-full transition-all duration-300 font-medium sm:font-semibold text-xs sm:text-base shadow-lg hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
             >
-              ✨ Explore Exclusive Deals
+              <span className="hidden sm:inline">✨</span> 
+              <span className="hidden sm:inline">Explore Exclusive </span>Deals
               <img
-                className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-2"
+                className="w-3 h-3 sm:w-4 sm:h-4 transition-transform duration-300 group-hover:translate-x-2"
                 src={blackArrow}
                 alt="arrow"
               />
