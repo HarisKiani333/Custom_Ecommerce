@@ -18,44 +18,56 @@ const orderRatingSchema = new mongoose.Schema(
       min: 1,
       max: 5,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           return Number.isInteger(v) && v >= 1 && v <= 5;
         },
-        message: 'Overall rating must be an integer between 1 and 5'
-      }
+        message: "Overall rating must be an integer between 1 and 5",
+      },
     },
     deliveryRating: {
       type: Number,
       min: 1,
       max: 5,
       validate: {
-        validator: function(v) {
-          return v === null || v === undefined || (Number.isInteger(v) && v >= 1 && v <= 5);
+        validator: function (v) {
+          return (
+            v === null ||
+            v === undefined ||
+            (Number.isInteger(v) && v >= 1 && v <= 5)
+          );
         },
-        message: 'Delivery rating must be an integer between 1 and 5'
-      }
+        message: "Delivery rating must be an integer between 1 and 5",
+      },
     },
     packagingRating: {
       type: Number,
       min: 1,
       max: 5,
       validate: {
-        validator: function(v) {
-          return v === null || v === undefined || (Number.isInteger(v) && v >= 1 && v <= 5);
+        validator: function (v) {
+          return (
+            v === null ||
+            v === undefined ||
+            (Number.isInteger(v) && v >= 1 && v <= 5)
+          );
         },
-        message: 'Packaging rating must be an integer between 1 and 5'
-      }
+        message: "Packaging rating must be an integer between 1 and 5",
+      },
     },
     customerServiceRating: {
       type: Number,
       min: 1,
       max: 5,
       validate: {
-        validator: function(v) {
-          return v === null || v === undefined || (Number.isInteger(v) && v >= 1 && v <= 5);
+        validator: function (v) {
+          return (
+            v === null ||
+            v === undefined ||
+            (Number.isInteger(v) && v >= 1 && v <= 5)
+          );
         },
-        message: 'Customer service rating must be an integer between 1 and 5'
-      }
+        message: "Customer service rating must be an integer between 1 and 5",
+      },
     },
     review: {
       type: String,
@@ -66,20 +78,22 @@ const orderRatingSchema = new mongoose.Schema(
       type: Boolean,
       default: null,
     },
-    tags: [{
-      type: String,
-      enum: [
-        'fast-delivery',
-        'excellent-packaging',
-        'great-communication',
-        'easy-ordering',
-        'good-value',
-        'quality-products',
-        'prompt-support',
-        'smooth-checkout',
-        'timely-updates'
-      ]
-    }]
+    tags: [
+      {
+        type: String,
+        enum: [
+          "fast-delivery",
+          "excellent-packaging",
+          "great-communication",
+          "easy-ordering",
+          "good-value",
+          "quality-products",
+          "prompt-support",
+          "smooth-checkout",
+          "timely-updates",
+        ],
+      },
+    ],
   },
   {
     timestamps: true,
@@ -93,6 +107,8 @@ orderRatingSchema.index({ userId: 1, orderId: 1 }, { unique: true });
 orderRatingSchema.index({ orderId: 1 });
 orderRatingSchema.index({ userId: 1 });
 
-const OrderRating = mongoose.models.OrderRating || mongoose.model("OrderRating", orderRatingSchema);
+const OrderRating =
+  mongoose.models.OrderRating ||
+  mongoose.model("OrderRating", orderRatingSchema);
 
 export default OrderRating;

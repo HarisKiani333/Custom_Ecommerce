@@ -1,5 +1,3 @@
-import React from "react";
-
 const StarRating = ({ rating, size = "small", showRatingText = false }) => {
   const renderStars = (rating) => {
     const stars = [];

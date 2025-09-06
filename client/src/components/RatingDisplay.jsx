@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import StarRating from "./StarRating";
 import axios from "axios";
 
@@ -20,9 +20,11 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URL}/api/rating/product/${productId}?page=${currentPage}&limit=${maxReviews}`
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/rating/product/${productId}?page=${currentPage}&limit=${maxReviews}`
       );
-      
+
       if (response.data.success) {
         setRatings(response.data.ratings);
         setStats(response.data.stats);
@@ -48,7 +50,7 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
 
   const getRatingDistribution = () => {
     const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-    ratings.forEach(rating => {
+    ratings.forEach((rating) => {
       distribution[rating.rating]++;
     });
     return distribution;
@@ -56,23 +58,31 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
 
   const renderRatingBar = (starCount, count, total) => {
     const percentage = total > 0 ? (count / total) * 100 : 0;
-    
+
     return (
       <div className="flex items-center space-x-3 text-sm">
         <div className="flex items-center space-x-1 w-8">
           <span className="font-medium text-gray-700">{starCount}</span>
-          <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+          <svg
+            className="w-4 h-4 text-yellow-400"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.97a1 1 0 00.95.69h4.174c.969 0 1.371 1.24.588 1.81l-3.379 2.455a1 1 0 00-.364 1.118l1.286 3.97c.3.921-.755 1.688-1.54 1.118L10 13.347l-3.379 2.455c-.784.57-1.838-.197-1.539-1.118l1.285-3.97a1 1 0 00-.364-1.118L2.623 9.397c-.783-.57-.38-1.81.588-1.81h4.174a1 1 0 00.95-.69l1.286-3.97z" />
           </svg>
         </div>
         <div className="flex-1 bg-gray-200 rounded-full h-3 overflow-hidden">
-          <div 
-            className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-3 rounded-full transition-all duration-500 ease-out" 
+          <div
+            className="bg-gradient-to-r from-yellow-400 to-yellow-500 h-3 rounded-full transition-all duration-500 ease-out"
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
-        <span className="w-10 text-right text-gray-600 font-medium">{count}</span>
-        <span className="w-12 text-right text-xs text-gray-500">({percentage.toFixed(0)}%)</span>
+        <span className="w-10 text-right text-gray-600 font-medium">
+          {count}
+        </span>
+        <span className="w-12 text-right text-xs text-gray-500">
+          ({percentage.toFixed(0)}%)
+        </span>
       </div>
     );
   };
@@ -86,7 +96,7 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
         </div>
         {showReviews && (
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
+            {[1, 2, 3].map((i) => (
               <div key={i} className="border rounded-lg p-4 space-y-2">
                 <div className="h-4 bg-gray-200 rounded w-24"></div>
                 <div className="h-3 bg-gray-200 rounded w-full"></div>
@@ -128,13 +138,16 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
             </div>
             <StarRating rating={stats.averageRating} size="large" />
             <p className="text-sm text-gray-600 mt-2 font-medium">
-              Based on {stats.totalRatings} {stats.totalRatings === 1 ? 'review' : 'reviews'}
+              Based on {stats.totalRatings}{" "}
+              {stats.totalRatings === 1 ? "review" : "reviews"}
             </p>
           </div>
-          
+
           <div className="flex-1 space-y-2 w-full md:w-auto">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Rating Distribution</h4>
-            {[5, 4, 3, 2, 1].map(star => 
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+              Rating Distribution
+            </h4>
+            {[5, 4, 3, 2, 1].map((star) =>
               renderRatingBar(star, distribution[star], stats.totalRatings)
             )}
           </div>
@@ -152,18 +165,21 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
               {ratings.length} of {stats.totalRatings} reviews
             </span>
           </div>
-          
+
           <div className="grid gap-6">
             {ratings.map((rating) => (
-              <div key={rating._id} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div
+                key={rating._id}
+                className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm hover:shadow-md transition-shadow duration-200"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-lg font-semibold shadow-sm">
-                      {rating.userId?.name?.charAt(0).toUpperCase() || 'U'}
+                      {rating.userId?.name?.charAt(0).toUpperCase() || "U"}
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900 text-lg">
-                        {rating.userId?.name || 'Anonymous User'}
+                        {rating.userId?.name || "Anonymous User"}
                       </p>
                       <div className="flex items-center space-x-3 mt-1">
                         <StarRating rating={rating.rating} size="small" />
@@ -179,7 +195,7 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {rating.review && (
                   <div className="mt-4">
                     <p className="text-gray-700 leading-relaxed text-base">
@@ -195,22 +211,26 @@ const RatingDisplay = ({ productId, showReviews = true, maxReviews = 5 }) => {
           {pagination.totalPages > 1 && (
             <div className="flex justify-center items-center space-x-4 mt-8 pt-6 border-t border-gray-200">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 flex items-center space-x-2"
               >
                 <span>←</span>
                 <span>Previous</span>
               </button>
-              
+
               <div className="flex items-center space-x-2">
                 <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg">
                   Page {currentPage} of {pagination.totalPages}
                 </span>
               </div>
-              
+
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(prev + 1, pagination.totalPages)
+                  )
+                }
                 disabled={currentPage === pagination.totalPages}
                 className="px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:border-gray-400 transition-colors duration-200 flex items-center space-x-2"
               >

@@ -21,8 +21,6 @@ const Cart = () => {
     products,
     currency,
     cartItems,
-    removeCartItem,
-    updateCartItem,
     axios,
     user,
     setCartItems,

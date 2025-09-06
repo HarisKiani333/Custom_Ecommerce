@@ -12,11 +12,11 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       validate: {
-        validator: function(email) {
+        validator: function (email) {
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         },
-        message: 'Please enter a valid email address'
-      }
+        message: "Please enter a valid email address",
+      },
     },
     password: {
       type: String,

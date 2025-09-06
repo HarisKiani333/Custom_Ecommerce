@@ -23,11 +23,11 @@ const ratingSchema = new mongoose.Schema(
       min: 1,
       max: 5,
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           return Number.isInteger(v) && v >= 1 && v <= 5;
         },
-        message: 'Rating must be an integer between 1 and 5'
-      }
+        message: "Rating must be an integer between 1 and 5",
+      },
     },
     review: {
       type: String,
@@ -37,7 +37,7 @@ const ratingSchema = new mongoose.Schema(
     isVerifiedPurchase: {
       type: Boolean,
       default: true,
-    }
+    },
   },
   {
     timestamps: true,

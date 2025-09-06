@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Menu, X, Search, User } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import CartButton from "./CartButton";
@@ -211,7 +211,9 @@ const Navbar = () => {
                 showCount={false}
                 size="w-4 h-4 sm:w-5 sm:h-5"
               />
-              <span className="text-sm sm:text-base">{`(${getCartCount() > 0 ? getCartCount() : 0})`}</span>
+              <span className="text-sm sm:text-base">{`(${
+                getCartCount() > 0 ? getCartCount() : 0
+              })`}</span>
             </div>
             {!user ? (
               <button

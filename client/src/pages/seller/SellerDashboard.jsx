@@ -12,35 +12,40 @@ const SellerDashboard = () => {
       path: "/seller/product-list",
       icon: <PackageSearch />,
     },
-    { name: "Order List", path: "/seller/order-list", icon: <PackageCheck />},
+    { name: "Order List", path: "/seller/order-list", icon: <PackageCheck /> },
   ];
 
   const { navigate, axios, setIsSeller } = useAppContext();
 
-const handleLogout = async () => {
-  try {
-    const { data } = await axios.get("/api/seller/logout");
+  const handleLogout = async () => {
+    try {
+      const { data } = await axios.get("/api/seller/logout");
       console.log(data);
 
-    if (data.success || data.message === "Logout Successful") {
-      toast.success(data.message || "Logout Successful");
-      setIsSeller(false);
-      navigate("/seller-login");
-    } else {
-      console.log(data);
+      if (data.success || data.message === "Logout Successful") {
+        toast.success(data.message || "Logout Successful");
+        setIsSeller(false);
+        navigate("/seller-login");
+      } else {
+        console.log(data);
 
-      toast.error(data.message || "Logout failed");
+        toast.error(data.message || "Logout failed");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error.response?.data?.message || "Network error, please try again"
+      );
     }
-  } catch (error) {
-    console.error(error);
-    toast.error(error.response?.data?.message || "Network error, please try again");
-  }
-};
+  };
 
   return (
     <>
       <div className="flex items-center justify-between px-4 md:px-8 border-b border-gray-200 py-4 bg-gradient-to-r from-white to-gray-50 shadow-sm transition-all duration-300 animate-in fade-in-50 duration-700">
-        <Link to="/seller" className="transform hover:scale-105 transition-transform duration-300">
+        <Link
+          to="/seller"
+          className="transform hover:scale-105 transition-transform duration-300"
+        >
           <img className="h-14 drop-shadow-sm" src={Logo} alt="Home Logo" />
         </Link>
         <div className="flex items-center gap-6 text-gray-600">
@@ -65,16 +70,18 @@ const handleLogout = async () => {
         <div className="md:w-64 w-16 border-r border-gray-200 bg-white shadow-lg text-base pt-6 flex flex-col transition-all duration-300 animate-in slide-in-from-left-4 duration-700 delay-100">
           <div className="px-4 mb-6 animate-in fade-in-50 duration-500 delay-400">
             <h3 className="text-lg font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent md:block hidden">
-               Seller Panel
+              Seller Panel
             </h3>
           </div>
-          
+
           {sidebarLinks.map((item, index) => (
             <NavLink
               to={item.path}
               key={item.name}
               end={item.path === "/seller"}
-              className={({ isActive }) => `flex items-center py-4 px-4 gap-3 mx-2 rounded-xl mb-2 transition-all duration-300 group animate-in slide-in-from-left-4 duration-500
+              className={({
+                isActive,
+              }) => `flex items-center py-4 px-4 gap-3 mx-2 rounded-xl mb-2 transition-all duration-300 group animate-in slide-in-from-left-4 duration-500
                             ${
                               isActive
                                 ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg transform scale-105"
@@ -83,9 +90,11 @@ const handleLogout = async () => {
                             `}
               style={{ animationDelay: `${500 + index * 100}ms` }}
             >
-              <div className={`transition-transform duration-300 group-hover:scale-110 ${
-                ({ isActive }) => isActive ? "text-white" : "text-gray-500"
-              }`}>
+              <div
+                className={`transition-transform duration-300 group-hover:scale-110 ${({
+                  isActive,
+                }) => (isActive ? "text-white" : "text-gray-500")}`}
+              >
                 {item.icon}
               </div>
               <div className="md:block hidden">
@@ -94,11 +103,13 @@ const handleLogout = async () => {
               </div>
             </NavLink>
           ))}
-          
+
           <div className="mt-auto p-4 border-t border-gray-200 animate-in fade-in-50 duration-500 delay-800">
             <div className="bg-gradient-to-r from-green-50 to-green-100 p-3 rounded-xl md:block hidden">
               <p className="text-xs text-green-700 font-medium">💡 Quick Tip</p>
-              <p className="text-xs text-green-600 mt-1">Use keyboard shortcuts for faster navigation!</p>
+              <p className="text-xs text-green-600 mt-1">
+                Use keyboard shortcuts for faster navigation!
+              </p>
             </div>
           </div>
         </div>

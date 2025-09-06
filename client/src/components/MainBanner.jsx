@@ -1,4 +1,3 @@
-import React from "react";
 import mainBanner from "../assets/img/main_banner.jpg";
 import blackArrow from "../assets/img/black_arrow-icon.png";
 import { Link } from "react-router-dom";

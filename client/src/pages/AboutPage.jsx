@@ -1,15 +1,16 @@
-import React from "react";
-import {toast} from "react-hot-toast"
 export const AboutPage = () => {
   return (
     <>
       <div className="mt-16 px-6 md:px-16 lg:px-24 xl:px-32 min-h-screen bg-gray-50">
         {/* Header Section */}
         <div className="text-center mb-16 pt-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">About Husk Store</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-3">
+            About Husk Store
+          </h1>
           <div className="w-24 h-1 bg-gradient-to-r from-green-500 to-green-600 rounded-full mx-auto mb-4"></div>
           <p className="text-gray-600 text-sm md:text-base max-w-2xl mx-auto">
-            Discover our story and commitment to bringing you the finest products with exceptional service
+            Discover our story and commitment to bringing you the finest
+            products with exceptional service
           </p>
         </div>
 
@@ -624,10 +625,14 @@ export const AboutPage = () => {
                   Make your customers happy by giving exceptional services.
                 </h2>
                 <p className="mb-6 text-gray-600 leading-relaxed">
-                  At Husk Store, we believe in delivering more than just products. We provide an experience that delights our customers through quality, reliability, and outstanding service.
+                  At Husk Store, we believe in delivering more than just
+                  products. We provide an experience that delights our customers
+                  through quality, reliability, and outstanding service.
                 </p>
                 <p className="mb-8 text-gray-600 leading-relaxed">
-                  Our commitment to excellence drives us to carefully curate every product, ensuring that each item meets our high standards and exceeds your expectations.
+                  Our commitment to excellence drives us to carefully curate
+                  every product, ensuring that each item meets our high
+                  standards and exceeds your expectations.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <a
@@ -654,28 +659,42 @@ export const AboutPage = () => {
             <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mb-6">
               <span className="text-2xl text-white">🚚</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Fast Delivery</h3>
-            <p className="text-gray-600">Quick and reliable shipping to get your products to you as soon as possible.</p>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Fast Delivery
+            </h3>
+            <p className="text-gray-600">
+              Quick and reliable shipping to get your products to you as soon as
+              possible.
+            </p>
           </div>
-          
+
           <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
             <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mb-6">
               <span className="text-2xl text-white">🛡️</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Quality Guarantee</h3>
-            <p className="text-gray-600">Every product is carefully selected and tested to ensure the highest quality standards.</p>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Quality Guarantee
+            </h3>
+            <p className="text-gray-600">
+              Every product is carefully selected and tested to ensure the
+              highest quality standards.
+            </p>
           </div>
-          
+
           <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
             <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mb-6">
               <span className="text-2xl text-white">💬</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-800 mb-4">24/7 Support</h3>
-            <p className="text-gray-600">Our dedicated support team is always ready to help you with any questions or concerns.</p>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              24/7 Support
+            </h3>
+            <p className="text-gray-600">
+              Our dedicated support team is always ready to help you with any
+              questions or concerns.
+            </p>
           </div>
         </div>
       </div>
     </>
   );
 };
-

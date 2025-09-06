@@ -41,12 +41,12 @@ const productSchema = new mongoose.Schema(
       required: true,
       default: "1kg",
       validate: {
-        validator: function(v) {
+        validator: function (v) {
           // Validate weight format (number followed by unit like kg, g, lb, oz)
           return /^\d+(\.\d+)?(kg|g|lb|oz)$/i.test(v);
         },
-        message: 'Weight must be in format like "1kg", "500g", "2.5lb", etc.'
-      }
+        message: 'Weight must be in format like "1kg", "500g", "2.5lb", etc.',
+      },
     },
   },
   { timestamps: true }
@@ -56,6 +56,7 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ sellerId: 1, name: 1 }, { unique: true });
 
 // ✅ FIX: Use uppercase 'Product' to match references
-const Product = mongoose.models.Product || mongoose.model("Product", productSchema);
+const Product =
+  mongoose.models.Product || mongoose.model("Product", productSchema);
 
 export default Product;

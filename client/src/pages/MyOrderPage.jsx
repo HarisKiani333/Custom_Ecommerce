@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import RatingModal from "../components/RatingModal";
 import OrderRatingModal from "../components/OrderRatingModal";
 import OrderRatingDisplay from "../components/OrderRatingDisplay";
-import axios from "axios";
 
 const OrderItem = memo(
   ({

@@ -52,14 +52,10 @@ const SellerLogin = () => {
           </h2>
         </div>
 
-        <form
-          onSubmit={onSubmitHandler}
-          className="space-y-6"
-        >
-
+        <form onSubmit={onSubmitHandler} className="space-y-6">
           <div className="animate-in slide-in-from-left-4 duration-500 delay-700">
             <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-              🖂 Email 
+              🖂 Email
             </label>
             <input
               type="email"
@@ -89,13 +85,16 @@ const SellerLogin = () => {
             type="submit"
             className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 px-6 rounded-xl hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-4 focus:ring-green-200 transition-all duration-300 font-bold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 animate-in slide-in-from-bottom-4 duration-500 delay-900"
           >
-             Login ▶
+            Login ▶
           </button>
         </form>
-        
+
         <div className="mt-8 text-center animate-in fade-in-50 duration-500 delay-1000">
           <p className="text-gray-600 text-sm">
-            Need help? <span className="text-green-600 hover:text-green-700 cursor-pointer font-medium">Contact Support</span>
+            Need help?{" "}
+            <span className="text-green-600 hover:text-green-700 cursor-pointer font-medium">
+              Contact Support
+            </span>
           </p>
         </div>
       </div>

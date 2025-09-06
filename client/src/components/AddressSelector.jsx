@@ -1,30 +1,30 @@
-import { useState, useCallback } from 'react';
-import toast from 'react-hot-toast';
-import { useAppContext } from '../context/AppContext';
+import { useState, useCallback } from "react";
+import toast from "react-hot-toast";
+import { useAppContext } from "../context/AppContext";
 
-const AddressSelector = ({ 
-  selectedAddress, 
-  onAddressSelect, 
-  addresses, 
-  onAddressAdded 
+const AddressSelector = ({
+  selectedAddress,
+  onAddressSelect,
+  addresses,
+  onAddressAdded,
 }) => {
   const { axios, user, navigate } = useAppContext();
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [newAddress, setNewAddress] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    zip: '',
-    country: '',
-    phone: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "",
+    phone: "",
   });
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    setNewAddress(prev => ({
+    setNewAddress((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -33,60 +33,62 @@ const AddressSelector = ({
   const addNewAddress = async () => {
     try {
       const requiredFields = [
-        'firstName',
-        'lastName', 
-        'email',
-        'address',
-        'city',
-        'state',
-        'zip',
-        'country',
-        'phone',
+        "firstName",
+        "lastName",
+        "email",
+        "address",
+        "city",
+        "state",
+        "zip",
+        "country",
+        "phone",
       ];
       const missingFields = requiredFields.filter(
-        field => !newAddress[field].trim()
+        (field) => !newAddress[field].trim()
       );
 
       if (missingFields.length > 0) {
         return toast.error(
-          `Please fill in all required fields: ${missingFields.join(', ')}`
+          `Please fill in all required fields: ${missingFields.join(", ")}`
         );
       }
 
-      const { data } = await axios.post('/api/address/add', { address: newAddress });
+      const { data } = await axios.post("/api/address/add", {
+        address: newAddress,
+      });
       if (data.success) {
-        toast.success('Address added successfully');
+        toast.success("Address added successfully");
         setNewAddress({
-          firstName: '',
-          lastName: '',
-          email: '',
-          address: '',
-          city: '',
-          state: '',
-          zip: '',
-          country: '',
-          phone: '',
+          firstName: "",
+          lastName: "",
+          email: "",
+          address: "",
+          city: "",
+          state: "",
+          zip: "",
+          country: "",
+          phone: "",
         });
         setShowAddressForm(false);
         onAddressAdded();
       } else {
-        toast.error(data.message || 'Failed to add address');
+        toast.error(data.message || "Failed to add address");
       }
     } catch (error) {
       console.error(error);
-      toast.error(error.message || 'Failed to add address');
+      toast.error(error.message || "Failed to add address");
     }
   };
 
   const handleAddressSelect = (addr) => {
     onAddressSelect(addr);
-    toast.success('Address selected successfully');
+    toast.success("Address selected successfully");
   };
 
   if (!user) {
     return (
       <button
-        onClick={() => navigate('/add-address')}
+        onClick={() => navigate("/add-address")}
         className="text-indigo-500 hover:underline cursor-pointer"
       >
         Add Address
@@ -100,8 +102,12 @@ const AddressSelector = ({
       <div className="flex justify-between items-start">
         {selectedAddress ? (
           <div className="text-gray-700">
-            <p>{selectedAddress.firstName} {selectedAddress.lastName}</p>
-            <p>{selectedAddress.address}, {selectedAddress.city}</p>
+            <p>
+              {selectedAddress.firstName} {selectedAddress.lastName}
+            </p>
+            <p>
+              {selectedAddress.address}, {selectedAddress.city}
+            </p>
             <p>{selectedAddress.phone}</p>
           </div>
         ) : (
@@ -118,8 +124,8 @@ const AddressSelector = ({
               key={addr._id}
               className={`p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
                 selectedAddress?._id === addr._id
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-gray-300 hover:border-gray-400'
+                  ? "border-green-500 bg-green-50"
+                  : "border-gray-300 hover:border-gray-400"
               }`}
               onClick={() => handleAddressSelect(addr)}
             >

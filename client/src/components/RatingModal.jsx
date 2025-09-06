@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import RatingInput from "./RatingInput";
 import axios from "axios";
 
-const RatingModal = ({ 
-  isOpen, 
-  onClose, 
-  productId, 
-  orderId, 
-  productName, 
+const RatingModal = ({
+  isOpen,
+  onClose,
+  productId,
+  orderId,
+  productName,
   productImage,
-  onRatingSubmitted 
+  onRatingSubmitted,
 }) => {
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
@@ -29,11 +29,11 @@ const RatingModal = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Reset states
     setError("");
     setSuccess(false);
-    
+
     // Validation
     if (rating === 0) {
       setError("Please select a rating between 1-5 stars");
@@ -58,15 +58,12 @@ const RatingModal = ({
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "/api/rating/create",
-        {
-          productId,
-          orderId,
-          rating,
-          review: review.trim(),
-        }
-      );
+      const response = await axios.post("/api/rating/create", {
+        productId,
+        orderId,
+        rating,
+        review: review.trim(),
+      });
 
       if (response.data.success) {
         setSuccess(true);
@@ -81,7 +78,7 @@ const RatingModal = ({
       }
     } catch (err) {
       console.error("Error submitting rating:", err);
-      
+
       if (err.response?.status === 401) {
         setError("Please log in to submit a rating");
       } else if (err.response?.status === 400) {
@@ -92,7 +89,8 @@ const RatingModal = ({
         setError("Product or order not found");
       } else {
         setError(
-          err.response?.data?.message || "Failed to submit rating. Please try again."
+          err.response?.data?.message ||
+            "Failed to submit rating. Please try again."
         );
       }
     } finally {
@@ -121,8 +119,18 @@ const RatingModal = ({
             disabled={loading}
             className="text-gray-400 hover:text-gray-600 transition-colors disabled:cursor-not-allowed"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -153,8 +161,18 @@ const RatingModal = ({
           {success ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-8 h-8 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -222,9 +240,24 @@ const RatingModal = ({
                 >
                   {loading ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Submitting...
                     </>

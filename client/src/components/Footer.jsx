@@ -1,4 +1,3 @@
-import React from "react";
 import logo from "../assets/img/husk_logo.png";
 const Footer = () => {
   return (

@@ -226,7 +226,7 @@ The backend will run on `http://localhost:4000`
 cd client
 npm run dev
 ```
-The frontend will run on `http://localhost:5174`
+The frontend will run on `http://localhost:5173`
 
 ### Production Mode
 
@@ -240,6 +240,97 @@ npm run build
 ```bash
 cd server
 npm start
+```
+
+## 🧪 Testing & Code Quality
+
+### Available Scripts
+
+#### Frontend Scripts
+```bash
+cd client
+
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues automatically
+npm run format       # Format code with Prettier
+
+# Testing
+npm test             # Run Jest tests
+```
+
+#### Backend Scripts
+```bash
+cd server
+
+# Development
+npm run server       # Start development server with nodemon
+npm start           # Start production server
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues automatically
+npm run format       # Format code with Prettier
+
+# Testing
+npm test             # Run Jest tests
+
+# Utilities
+npm run setup-email  # Setup email configuration
+npm run test-email   # Test email functionality
+```
+
+### Testing Setup
+
+#### Backend Testing
+- **Framework**: Jest with Supertest
+- **Location**: `server/tests/`
+- **Configuration**: `server/package.json` (Jest section)
+- **Sample Tests**: API endpoint testing for products
+
+#### Frontend Testing
+- **Framework**: Jest with React Testing Library
+- **Location**: `client/tests/`
+- **Configuration**: `client/package.json` (Jest section)
+- **Setup**: `client/tests/setupTests.js`
+- **Sample Tests**: Component utility functions
+
+#### Running Tests
+```bash
+# Run backend tests
+cd server && npm test
+
+# Run frontend tests
+cd client && npm test
+```
+
+### Code Quality Tools
+
+#### ESLint Configuration
+- **Backend**: `.eslintrc.json` with Node.js rules
+- **Frontend**: `eslint.config.js` with React rules
+- **Rules**: Enforces consistent code style, catches common errors
+
+#### Prettier Configuration
+- **Config Files**: `.prettierrc` in both client and server
+- **Settings**: 
+  - Semicolons: true
+  - Single quotes: true
+  - Trailing commas: es5
+  - Tab width: 2 spaces
+  - Print width: 80 characters
+
+#### Pre-commit Workflow
+```bash
+# Recommended workflow before committing
+npm run lint:fix     # Fix linting issues
+npm run format       # Format code
+npm test             # Run tests
 ```
 
 ## 📚 API Documentation
@@ -328,8 +419,10 @@ npm start
 - Ensure responsive design for all UI components
 
 ### Testing
-- Write unit tests for new features
-- Test API endpoints with tools like Postman
+- Write unit tests for new features using Jest
+- Backend: Use Jest + Supertest for API endpoint testing
+- Frontend: Use Jest + React Testing Library for component testing
+- Run `npm test` in respective directories to execute tests
 - Ensure cross-browser compatibility
 - Test responsive design on different devices
 

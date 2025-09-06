@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-const RatingInput = ({ 
-  initialRating = 0, 
-  onRatingChange, 
-  size = "medium", 
+const RatingInput = ({
+  initialRating = 0,
+  onRatingChange,
+  size = "medium",
   disabled = false,
-  showLabels = true 
+  showLabels = true,
 }) => {
   const [rating, setRating] = useState(initialRating);
   const [hoverRating, setHoverRating] = useState(0);
@@ -56,13 +56,13 @@ const RatingInput = ({
     2: "Fair",
     3: "Good",
     4: "Very Good",
-    5: "Excellent"
+    5: "Excellent",
   };
 
   return (
     <div className="flex flex-col items-center space-y-2">
-      <div 
-        className="flex items-center space-x-1" 
+      <div
+        className="flex items-center space-x-1"
         onMouseLeave={handleMouseLeave}
       >
         {[1, 2, 3, 4, 5].map((starValue) => (
@@ -70,9 +70,7 @@ const RatingInput = ({
             key={starValue}
             type="button"
             className={`transition-all duration-200 ${
-              disabled 
-                ? "cursor-not-allowed" 
-                : "cursor-pointer hover:scale-110"
+              disabled ? "cursor-not-allowed" : "cursor-pointer hover:scale-110"
             }`}
             onClick={() => handleStarClick(starValue)}
             onMouseEnter={() => handleStarHover(starValue)}
@@ -89,7 +87,7 @@ const RatingInput = ({
           </button>
         ))}
       </div>
-      
+
       {showLabels && (hoverRating || rating) > 0 && (
         <p className="text-sm text-gray-600 font-medium">
           {ratingLabels[hoverRating || rating]}
